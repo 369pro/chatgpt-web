@@ -13,7 +13,7 @@ export interface AccessControlStore {
     goToLogin: () => void;
 }
 
-export const useAccessStore = create<AccessControlStore>()(
+export const useAccessStore: any = create<AccessControlStore>()(
     persist(
         (set, get) => ({
             token: "",

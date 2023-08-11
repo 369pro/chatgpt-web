@@ -4,7 +4,7 @@ import styles from "./auth.module.scss";
 import { useNavigate } from "react-router-dom";
 import { useAccessStore } from "../../store/access";
 import ChatGPTIcon from "../../icons/chatgpt.svg";
-export function AuthPage() {
+export function Auth() {
     const navigate = useNavigate();
     const access = useAccessStore();
     return (
