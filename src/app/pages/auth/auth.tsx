@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { useAccessStore } from "../../store/access";
 import ChatGPTIcon from "../../icons/chatgpt.svg";
 export function Auth() {
-    const navigate = useNavigate();
     const access = useAccessStore();
     return (
         <div className={styles["auth-page"]}>
@@ -15,13 +14,13 @@ export function Auth() {
                 学习AI开发、掌握AI部署、运用AI提效
             </div>
             <img
-                src="https://bugstack.cn/images/personal/qrcode.png"
+                src="/qrcode.jpg"
                 style={{ width: 250 }}
             />
             <div className={styles["auth-tips"]}>
-                扫码关注公众号【bugstack虫洞栈】，
+                扫码关注公众号【AutoStudy】，
                 <a
-                    href="https://bugstack.cn/images/personal/qrcode.png"
+                    href="/qrcode.jpg"
                     target="_blank"
                 >
                     回复【403】获取访问密码

@@ -1,0 +1,1 @@
+docker build -t fuzhengwei/chatgpt-web:1.0 .
