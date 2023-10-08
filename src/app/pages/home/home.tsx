@@ -15,6 +15,7 @@ import { useAccessStore } from "@/app/store/access";
 const Chat = dynamic(async () => (await import("../chat/chat")).Chat);
 const Role = dynamic(async () => (await import("../role/role")).Role);
 const Auth = dynamic(async () => (await import("../auth/auth")).Auth);
+const Sale = dynamic(async () => (await import("../sale/sale")).Sale);
 
 function Screen() {
     const config = useAppConfig();
@@ -45,6 +46,7 @@ function Screen() {
                             <Route path={Path.Role} element={<Role />}>
                                 <Route path=":id" element={<RoleDetail />} />
                             </Route>
+                            <Route path={Path.Sale} element={<Sale/>}/>
                         </Routes>
                     </div>
                 </>

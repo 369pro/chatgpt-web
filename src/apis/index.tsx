@@ -1,7 +1,6 @@
 import {GptVersion} from "@/app/constants";
 import {useAccessStore} from "@/app/store/access";
 import {MessageRole} from "@/types/chat";
-import {getServerSideConfig} from "@/app/config/server";
 
 // 构建前把localhost修改为你的公网IP或者域名地址
 // const {apiHostUrl} = getServerSideConfig();
@@ -59,3 +58,29 @@ export const login = (token: string) => {
         body: `code=${accessState.accessCode}`
     });
 };
+
+/**
+ * 商品列表查询
+ */
+export const queryProductList = () => {
+    return fetch(`${apiHostUrl}/api/v1/sale/query_product_list`, {
+        method: "get",
+        headers: getHeaders(),
+    });
+}
+
+/**
+ * 用户商品下单，获得支付地址 url
+ */
+export const createPayOrder = (productId: number) => {
+    return fetch(`${apiHostUrl}/api/v1/sale/create_pay_order`, {
+        method: "post",
+        headers: {
+            ...getHeaders(),
+            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+        },
+        body: `productId=${productId}`
+    });
+}
+
+
