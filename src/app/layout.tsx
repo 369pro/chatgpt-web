@@ -4,8 +4,8 @@ import {Inter} from 'next/font/google'
 const inter = Inter({subsets: ['latin']})
 
 export const metadata = {
-    title: 'ChatGPT - 小傅哥',
-    description: '您的 ChatGPT 贴心助手！',
+    title: 'OpenAI - 小傅哥',
+    description: '您的 OpenAi 贴心助手！',
 }
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
               var _hmt = _hmt || [];
               (function() {
                 var hm = document.createElement("script");
-                hm.src = "https://hm.baidu.com/hm.js?8c8d73183929fe9e009a014e6f035f12";
+                hm.src = "https://hm.baidu.com/hm.js?59b1c03e89ca78358b9dcd9d7327a300";
                 var s = document.getElementsByTagName("script")[0]; 
                 s.parentNode.insertBefore(hm, s);
               })();

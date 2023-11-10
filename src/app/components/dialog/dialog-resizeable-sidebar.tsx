@@ -10,7 +10,7 @@ export function DialogResizeableSidebar(props: PropsWithChildren<Props>) {
             minWidth={220}
             maxWidth={320}
             defaultSize={{
-                width: 260,
+                width: "100%",
                 height: "100%",
             }}
             style={{

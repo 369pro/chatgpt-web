@@ -1,33 +1,72 @@
-# 使用 Node.js 16 Alpine 作为基础镜像
-FROM node:16-alpine as build
+FROM node:18-alpine AS base
 
-ENV NEXT_PUBLIC_API_HOST_URL=""
-
-# 设置工作目录
+# Install dependencies only when needed
+FROM base AS deps
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# 复制 package.json 和 package-lock.json 到容器中
-COPY package*.json ./
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+#RUN \
+#  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+#  elif [ -f package-lock.json ]; then npm ci; \
+#  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && pnpm i --frozen-lockfile; \
+#  else echo "Lockfile not found." && exit 1; \
+#  fi
 
-# 安装依赖
-RUN npm install
+RUN yarn config set registry 'https://registry.npmmirror.com/'
+RUN yarn install
 
-# 将应用程序代码复制到容器中
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 构建 TypeScript 代码
-RUN npm run build
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+# ENV NEXT_TELEMETRY_DISABLED 1
 
-# 使用多阶段构建
-FROM node:16-alpine
+RUN yarn build
 
+# If using npm comment out above and use below instead
+# RUN npm run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
 WORKDIR /app
 
-# 从构建阶段复制构建的产物
-COPY --from=build /app ./
+#ENV NODE_ENV production
+# Uncomment the following line in case you want to disable telemetry during runtime.
+# ENV NEXT_TELEMETRY_DISABLED 1
 
-# 暴露 3001 端口
-EXPOSE 3001
+#RUN addgroup --system --gid 1001 nodejs
+#RUN adduser --system --uid 1001 nextjs
 
-# 启动应用程序
-CMD ["npm", "start"]
+#COPY --from=builder /app/public ./public
+
+# Set the correct permission for prerender cache
+#RUN mkdir .next
+#RUN chown nextjs:nodejs .next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+#COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+#COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/.next/server ./.next/server
+
+#USER nextjs
+
+EXPOSE 3002
+
+ENV PORT 3002
+# set hostname to localhost
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["node", "server.js"]
