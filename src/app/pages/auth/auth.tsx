@@ -9,16 +9,16 @@ export function Auth() {
     return (
         <div className={styles["auth-page"]}>
             <ChatGPTIcon/>
-            <div className={styles["auth-title"]}>OpenAIhub</div>
+            <div className={styles["auth-title"]}>OpenAiHub</div>
             <div className={styles["auth-sub-title"]}>
                 学习AI开发、掌握AI部署、运用AI提效
             </div>
             <img
-                src="/qrcode.jpg"
+                src="/qrcode.png"
                 style={{ width: 250 }}
             />
             <div className={styles["auth-tips"]}>
-                扫码关注公众号【AutoStudy】，
+                扫码关注公众号【小傅哥】，
                 <a
                     href="/qrcode.jpg"
                     target="_blank"
@@ -46,7 +46,7 @@ export function Auth() {
                 <Button type="text">稍后再说</Button>
             </div>
             <span>
-        说明：此平台主要以学习OpenAI为主，请合理、合法、合规的使用相关资料！
+        说明：此平台以学习OpenAI项目开发的演示站点，不提供OpenAI在线服务。一且操作都为项目的验证，学习编程技术为主。
       </span>
         </div>
     );
