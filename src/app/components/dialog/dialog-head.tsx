@@ -1,6 +1,7 @@
 import styles from './dialog-head.module.scss'
 import {userChatStore} from "@/app/store/chat-store";
 import {useNavigate} from "react-router-dom";
+
 export function DialogHead(){
     const navigate = useNavigate();
     const chatStore = userChatStore();
@@ -11,7 +12,9 @@ export function DialogHead(){
             state.selectSession]);
     return (
         <div className={styles["dialog-head"]}>
-            <div className={styles["dialog-search-box"]}><input type="text" placeholder="搜索"/></div>
+            <div className={styles["dialog-search-box"]}>
+                <input type="button" value={"👉 点击进入此项目课程地址"} onClick={() => window.open('https://bugstack.cn/md/project/chatgpt/chatgpt.html')}/>
+            </div>
             <div className={styles["dialog-search-add"]} onClick={() => {
                 let session = chatStore.openSession();
                 // 点击时跳转到对应的界面，并传递必要参数信息
