@@ -74,12 +74,13 @@ export default function DialogMessagesActions(props: {
     const {config} = props
     return <div className={styles['chat-input-actions']}>
         <Select
-            value={config?.gptVersion??GptVersion.CHATGLM_LITE}
+            value={config?.gptVersion??GptVersion.CHATGLM_Turbo}
             style={{ width: 160 }}
             options={[
-                { value: GptVersion.CHATGLM_LITE, label: 'chatglm_lite' },
-                { value: GptVersion.CHATGLM_STD, label: 'chatglm_std' },
-                { value: GptVersion.CHATGLM_PRO, label: 'chatglm_pro' },
+                // { value: GptVersion.CHATGLM_LITE, label: 'chatglm_lite' },
+                // { value: GptVersion.CHATGLM_STD, label: 'chatglm_std' },
+                // { value: GptVersion.CHATGLM_PRO, label: 'chatglm_pro' },
+                { value: GptVersion.CHATGLM_Turbo, label: 'chatglm_turbo' },
                 { value: GptVersion.DALL_E_3, label: 'dall-e-3(画图)' },
                 // { value: GptVersion.GPT_3_5_TURBO_16K, label: 'gpt-3.5-turbo-16k' },
                 // { value: GptVersion.DALL_E_2, label: 'dall-e-2(画图)' },

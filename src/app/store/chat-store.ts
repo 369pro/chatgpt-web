@@ -60,7 +60,7 @@ function createChatSession(dialog?: {
         ],
         clearContextIndex: undefined,
         config: {
-            gptVersion: GptVersion.CHATGLM_LITE,
+            gptVersion: GptVersion.CHATGLM_Turbo,
         }
     };
 }
