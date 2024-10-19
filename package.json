@@ -41,6 +41,7 @@
     "tailwindcss": "3.3.2",
     "typescript": "5.0.4",
     "use-debounce": "^9.0.4",
-    "zustand": "^4.3.6"
+    "zustand": "^4.3.6",
+    "@lucky-canvas/react": "^0.1.13"
   }
 }

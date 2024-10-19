@@ -8,6 +8,7 @@ import MinIcon from "../../icons/min.svg";
 import ExitIcon from "../../icons/exit.svg";
 import SaleIcon from "../../icons/sale.svg";
 import GitIcon from "../../icons/git.svg";
+import MarketIcon from "../../icons/market.svg";
 
 import {useNavigate} from "react-router-dom";
 import {Path} from "@/app/constants";
@@ -65,6 +66,13 @@ export function SideBar() {
                      navigate(Path.Sale)
                  }}>
                 <SaleIcon/>
+            </div>
+
+            <div className={styles["sidebar-mall"]}
+                 onClick={() => {
+                     navigate(Path.Market)
+                 }}>
+                <MarketIcon/>
             </div>
 
             <div className={styles["sidebar-git"]}
