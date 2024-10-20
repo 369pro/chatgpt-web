@@ -30,3 +30,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+/push_all_branches_v2_同步工程下仓库到xfg-studio-project.sh
