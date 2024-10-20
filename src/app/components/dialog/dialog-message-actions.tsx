@@ -1,7 +1,6 @@
 import {ClearOutlined} from '@ant-design/icons';
 import styles from '@/app/components/dialog/dialog-message-action.module.scss';
 import {Select} from 'antd'
-import BreakIcon from "../../icons/break.svg";
 import {userChatStore} from '@/app/store/chat-store';
 import {GptVersion} from '../../constants'
 import {SessionConfig} from "@/types/chat";
@@ -84,8 +83,8 @@ export default function DialogMessagesActions(props: {
                 // { value: GptVersion.DALL_E_3, label: 'dall-e-3(画图)' },
                 // { value: GptVersion.GPT_3_5_TURBO_16K, label: 'gpt-3.5-turbo-16k' },
                 // { value: GptVersion.DALL_E_2, label: 'dall-e-2(画图)' },
-                // { value: GptVersion.GPT_3_5_TURBO, label: 'gpt-3.5-turbo' },
-                // { value: GptVersion.GPT_4, label: 'gpt-4' },
+                { value: GptVersion.GPT_3_5_TURBO, label: 'gpt-3.5-turbo' },
+                { value: GptVersion.GPT_4, label: 'gpt-4' },
                 // { value: GptVersion.GPT_4o, label: 'gpt-4o' },
                 // { value: GptVersion.CHATGLM_6B_SSE, label: 'chatGLM_6b_SSE' },
                 // { value: GptVersion.GPT_4, label: 'gpt-4【暂无】' },
