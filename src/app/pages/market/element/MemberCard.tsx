@@ -14,7 +14,7 @@ import {useAccessStore} from "@/app/store/access";
 import {AccountQuotaResponseDTO} from "@/types/AccountQuotaResponseDTO";
 
 // @ts-ignore
-export function MemberCard({allRefresh}) {
+export function MemberCard({allRefresh, activityId}) {
     const [refresh, setRefresh] = useState(0);
 
     const [dayCount, setDayCount] = useState(0)
@@ -35,7 +35,7 @@ export function MemberCard({allRefresh}) {
         + ('0' + currentDate.getDate()).slice(-2) + '日';
 
     const queryUserActivityAccountHandle = async () => {
-        const result = await queryUserActivityAccount(100401);
+        const result = await queryUserActivityAccount(activityId);
         // 查询账户数据
         const {code, info, data}: { code: string; info: string; data: UserActivityAccountVO } = await result.json();
 

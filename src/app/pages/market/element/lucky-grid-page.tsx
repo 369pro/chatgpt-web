@@ -11,12 +11,12 @@ import {RaffleAwardVO} from "@/types/RaffleAwardVO";
  * @constructor
  */
 // @ts-ignore
-export function LuckyGridPage({handleRefresh}) {
+export function LuckyGridPage({handleRefresh, activityId}) {
     const [prizes, setPrizes] = useState([{}])
     const myLucky = useRef()
 
     const queryRaffleAwardListHandle = async () => {
-        const result = await queryRaffleAwardList(100401);
+        const result = await queryRaffleAwardList(activityId);
         const {code, info, data}: { code: string; info: string; data: RaffleAwardVO[] } = await result.json();
 
         if (code != "0000") {
@@ -112,7 +112,7 @@ export function LuckyGridPage({handleRefresh}) {
     }
 
     const randomRaffleHandle = async () => {
-        let result = await draw(100401);
+        let result = await draw(activityId);
         const {code, info, data} = await result.json();
         if (code != "0000") {
             window.alert("随机抽奖失败 code:" + code + " info:" + info)

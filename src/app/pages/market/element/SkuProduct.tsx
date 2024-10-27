@@ -5,11 +5,11 @@ import {SaleProductEnum} from "@/types/sale_product";
 import {useAccessStore} from "@/app/store/access";
 
 // @ts-ignore
-export function SkuProduct({handleRefresh}) {
+export function SkuProduct({handleRefresh, activityId}) {
     const [SkuProductResponseDTOList, setSkuProductResponseDTOList] = useState<SkuProductResponseDTO[]>([]);
 
     const querySkuProductListByActivityIdHandle = async () => {
-        const result = await querySkuProductListByActivityId(100401);
+        const result = await querySkuProductListByActivityId(activityId);
 
         const {code, info, data}: { code: string; info: string; data: SkuProductResponseDTO[] } = await result.json();
 

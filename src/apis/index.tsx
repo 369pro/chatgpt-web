@@ -2,7 +2,7 @@ import {GptVersion} from "@/app/constants";
 import {useAccessStore} from "@/app/store/access";
 import {MessageRole} from "@/types/chat";
 
-// 构建前把localhost修改为你的公网IP或者域名地址 https://api.gaga.plus
+// 构建前把localhost修改为你的公网IP或者域名地址 https://api.gaga.plus http://127.0.0.1:8091
 const openAIApiHostUrl = "http://127.0.0.1:8091";
 const bigMarketApiHostUrl = "http://127.0.0.1:8098";
 
@@ -266,6 +266,16 @@ export const creditPayExchangeSku = (sku?: number) => {
             "}");
     }
 }
+
+export const queryStageActivityId = () => {
+    return fetch(`${bigMarketApiHostUrl}/api/v1/raffle/activity/query_stage_activity_id?channel=c01&source=s01`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+}
+
 
 
 
