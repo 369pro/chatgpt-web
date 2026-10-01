@@ -5,6 +5,7 @@ import {queryStageActivityId, queryUserActivityAccount, queryUserCreditAccount, 
 import {useAccessStore} from "@/app/store/access";
 import {LuckyGridPage} from "./element/lucky-grid-page";
 import {SignCalendar} from "./element/sign-calendar";
+import {AwardFeedPanel} from "./element/award-feed";
 import {readMarketResult} from "./result";
 import {SkuProductResponseDTO} from "@/types/SkuProductResponseDTO";
 import styles from "./market.module.scss";
@@ -22,7 +23,6 @@ export function Market() {
     const [products, setProducts] = useState<SkuProductResponseDTO[]>([]);
     const [rules, setRules] = useState(false);
     const [calendarOpen, setCalendarOpen] = useState(false);
-    const [results, setResults] = useState<{title: string; time: string}[]>([]);
     const [notice, holder] = message.useMessage();
     const username = useAccessStore(state => state.username);
     const exchangeRequest = useRef<{sku: number; requestId: string}>();
@@ -109,10 +109,7 @@ export function Market() {
         <div className={styles.activity}>
             <section className={styles.drawSection} aria-label="幸运抽奖盘">
                 <div className={styles.sectionTitle}><h2><GiftOutlined/>幸运九宫格</h2><span>{activityId ? "活动 " + activityId : "加载中"}</span></div>
-                {activityId ? <LuckyGridPage activityId={activityId} refresh={refresh} onWin={title => {
-                    setResults(items => [{title, time: new Date().toLocaleTimeString("zh-CN", {hour: "2-digit", minute: "2-digit"})}, ...items].slice(0, 5));
-                    refreshAfterReward();
-                }}/> : <div className={styles.boardPlaceholder}>{loading ? <Spin/> : "暂无可参与的活动"}</div>}
+                {activityId ? <LuckyGridPage activityId={activityId} refresh={refresh} onWin={refreshAfterReward}/> : <div className={styles.boardPlaceholder}>{loading ? <Spin/> : "暂无可参与的活动"}</div>}
             </section>
             <aside className={styles.activityAside}>
                 <section className={styles.signSection}>
@@ -121,11 +118,7 @@ export function Market() {
                     <div className={styles.signStatus}><span className={styles.signIcon}><CalendarOutlined/></span><div><strong>{signed ? "今天也有新收获" : "新一天，来签到"}</strong><p>{username}</p></div></div>
                     <Button type={signed ? "default" : "primary"} block disabled={signed || Boolean(busy)} loading={busy === "sign"} onClick={signIn} icon={signed ? <CheckCircleFilled/> : undefined}>{signed ? "今日已签到" : "立即签到"}</Button>
                 </section>
-                <section className={styles.resultsSection}>
-                    <div className={styles.sectionTitle}><h2>本次中奖记录</h2><span>{results.length} 条</span></div>
-                    {results.length ? <ul className={styles.results}>{results.map((result, index) => <li key={index}><GiftOutlined/><span>{result.title}</span><time>{result.time}</time></li>)}</ul> :
-                        <div className={styles.empty}><GiftOutlined/><strong>还没有新的收获</strong><span>期待你的第一份奖励</span></div>}
-                </section>
+                {activityId > 0 && <AwardFeedPanel key={activityId} activityId={activityId} refresh={refresh}/>}
             </aside>
         </div>
         <section className={styles.exchangeSection}>

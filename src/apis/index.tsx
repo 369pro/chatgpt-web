@@ -295,3 +295,11 @@ export const queryCalendarSignRecords = (month: string, signal?: AbortSignal) =>
     });
 };
 
+
+/** 查询当前活动的中奖展示和最新播报。 */
+export const queryAwardFeed = (activityId: number, pageNo = 1, pageSize = 5, signal?: AbortSignal) => {
+    const query = new URLSearchParams({activityId: String(activityId), pageNo: String(pageNo), pageSize: String(pageSize)});
+    return fetch(`${bigMarketApiHostUrl}/api/v1/raffle/activity/query_award_feed?${query}`, {
+        method: "POST", headers: getHeaders(), signal,
+    });
+};

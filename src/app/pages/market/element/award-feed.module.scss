@@ -1,0 +1,34 @@
+.feed { border-top: 1px solid #edf0f4; padding-top: 22px; margin-top: 24px; min-width: 0; }
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.heading h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; font-weight: 600; color: #252a34; }
+.heading h2 > span { color: #2878ff; }
+.heading > span { font-size: 12px; color: #778294; }
+.winners, .ticker { list-style: none; margin: 0; padding: 0; }
+.winners li { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid #f0f3f8; }
+.awardImage { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; border-radius: 6px; background: #f5f8ff; color: #5484d8; font-size: 22px; overflow: hidden; }
+.awardImage img { width: 100%; height: 100%; object-fit: contain; }
+.winner { min-width: 0; flex: 1; font-size: 12px; }
+.winner p { margin: 0 0 5px; color: #778294; }
+.winner strong { color: #626b7c; font-weight: 500; }
+.winner > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #626b7c; }
+.winner b { color: #252a34; font-weight: 500; }
+.winners time { color: #778294; font-size: 11px; white-space: nowrap; }
+.pagination { display: flex; justify-content: center; margin-top: 16px; }
+.caption { text-align: center; font-size: 11px; color: #778294; margin: 10px 0 0; }
+.broadcasts { border-top: 1px solid #edf0f4; padding-top: 20px; margin-top: 22px; }
+.ticker { max-height: 180px; overflow-y: auto; scrollbar-width: thin; padding: 0 10px; background: #f7f9fc; border-radius: 6px; }
+.ticker:focus-visible { outline: 2px solid #2878ff; outline-offset: 2px; }
+.ticker li { display: flex; align-items: center; gap: 8px; padding: 10px 0; font-size: 11px; border-bottom: 1px solid #e9edf4; }
+.ticker li > span { color: #ce8a18; font-size: 15px; }
+.ticker li > div { flex: 1; min-width: 0; color: #626b7c; }
+.ticker strong { font-weight: 500; }
+.ticker p { margin: 4px 0 0; color: #252a34; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticker time { font-size: 10px; color: #778294; white-space: nowrap; }
+.placeholder { display: grid; place-items: center; min-height: 150px; color: #778294; font-size: 12px; }
+.empty { display: flex; align-items: center; flex-direction: column; padding: 24px 0; color: #778294; }
+.empty > span:first-child { font-size: 28px; color: #c2cbd8; }
+.empty p { margin: 10px 0 6px; font-size: 13px; }
+.empty > span:last-child { font-size: 12px; }
+.broadcastEmpty { font-size: 12px; color: #778294; padding: 16px 10px; background: #f7f9fc; border-radius: 6px; }
+.error { margin-bottom: 12px; font-size: 12px; }
+@media (min-width: 601px) and (max-width: 1050px) { .feed { margin-top: 0; padding-top: 0; border-top: 0; } }
