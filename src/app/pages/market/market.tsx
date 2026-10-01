@@ -1,80 +1,148 @@
-import {useEffect, useState} from "react";
-import {Button} from "antd";
-import {CalendarOutlined} from "@ant-design/icons";
+import {useCallback, useEffect, useRef, useState} from "react";
+import {Alert, Button, Modal, Spin, Tooltip, message} from "antd";
+import {GiftOutlined, ReloadOutlined, CalendarOutlined, CheckCircleFilled, WalletOutlined, MessageOutlined} from "@ant-design/icons";
+import {queryStageActivityId, queryUserActivityAccount, queryUserCreditAccount, queryAccountQuota, isCalendarSignRebate, calendarSignRebate, querySkuProductListByActivityId, creditPayExchangeSku} from "@/apis";
+import {useAccessStore} from "@/app/store/access";
+import {LuckyGridPage} from "./element/lucky-grid-page";
 import {SignCalendar} from "./element/sign-calendar";
-import dynamic from "next/dynamic";
+import {readMarketResult} from "./result";
+import {SkuProductResponseDTO} from "@/types/SkuProductResponseDTO";
 import styles from "./market.module.scss";
 
-import {LuckyGridPage} from "@/app/pages/market/element/lucky-grid-page";
-import {queryStageActivityId} from "@/apis";
-import {SaleProductEnum} from "@/types/sale_product";
-import {useAccessStore} from "@/app/store/access";
-
-const MemberCardButton = dynamic(async () => (await import("./element/MemberCard")).MemberCard)
-const SkuProductButton = dynamic(async () => (await import("./element/SkuProduct")).SkuProduct)
-
 export function Market() {
-
-    const [refresh, setRefresh] = useState(0);
-    const [calendarOpen, setCalendarOpen] = useState(false);
     const [activityId, setActivityId] = useState(0);
+    const [refresh, setRefresh] = useState(0);
     const [loading, setLoading] = useState(true);
-
-    const handleRefresh = () => {
-        setRefresh(refresh + 1)
-    };
-
-    const queryStageActivityIdHandle = async () => {
-        try {
-            const result = await queryStageActivityId();
-            const {code, info, data} = await result.json();
-
-            // 登录拦截
-            if (code === SaleProductEnum.NeedLogin) {
-                useAccessStore.getState().goToLogin();
-            }
-
-            if (code != "0000") {
-                window.alert("查询上架活动失败 code:" + code + " info:" + info)
-                return;
-            }
-
-            setActivityId(data);
-
-            handleRefresh();
-        } finally {
-            setLoading(false);
-        }
-    }
+    const [error, setError] = useState("");
+    const [signed, setSigned] = useState(false);
+    const [busy, setBusy] = useState<string | number>("");
+    const [credit, setCredit] = useState<number | null>(null);
+    const [draws, setDraws] = useState<number | null>(null);
+    const [quota, setQuota] = useState<number | null>(null);
+    const [products, setProducts] = useState<SkuProductResponseDTO[]>([]);
+    const [rules, setRules] = useState(false);
+    const [calendarOpen, setCalendarOpen] = useState(false);
+    const [results, setResults] = useState<{title: string; time: string}[]>([]);
+    const [notice, holder] = message.useMessage();
+    const username = useAccessStore(state => state.username);
+    const exchangeRequest = useRef<{sku: number; requestId: string}>();
+    const reload = useCallback(() => setRefresh(value => value + 1), []);
+    const refreshTimer = useRef<ReturnType<typeof setTimeout>>();
+    useEffect(() => () => clearTimeout(refreshTimer.current), []);
+    const refreshAfterReward = useCallback(() => {
+        reload();
+        clearTimeout(refreshTimer.current);
+        refreshTimer.current = setTimeout(reload, 1500);
+    }, [reload]);
 
     useEffect(() => {
-        queryStageActivityIdHandle().then(r => {
-        });
-    }, [])
+        let active = true;
+        setLoading(true);
+        setError("");
+        (async () => {
+            const id = await readMarketResult<number>(queryStageActivityId());
+            if (!id) throw new Error("当前暂无上架活动");
+            if (!active) return;
+            setActivityId(id);
+            const failures: string[] = [];
+            async function load<T>(label: string, request: Promise<T>, update: (value: T) => void) {
+                try { const value = await request; if (active) update(value); }
+                catch (e) { failures.push(label + "：" + (e instanceof Error ? e.message : "加载失败")); }
+            }
+            await Promise.all([
+                load("抽奖次数", readMarketResult<{dayCountSurplus: number}>(queryUserActivityAccount(id)), value => setDraws(value.dayCountSurplus)),
+                load("积分", readMarketResult<number>(queryUserCreditAccount()), setCredit),
+                load("对话额度", readMarketResult<{surplusQuota: number}>(queryAccountQuota()), value => setQuota(value.surplusQuota)),
+                load("签到状态", readMarketResult<boolean>(isCalendarSignRebate()), setSigned),
+                load("兑换商品", readMarketResult<SkuProductResponseDTO[]>(querySkuProductListByActivityId(id)), setProducts),
+            ]);
+            if (active && failures.length) setError(failures.join("；"));
+        })().catch(e => {if (active) setError(e.message || "账户数据加载失败");})
+            .finally(() => {if (active) setLoading(false);});
+        return () => {active = false;};
+    }, [refresh]);
 
-    if (loading) {
-        return <div>Loading...</div>;
+    async function signIn() {
+        if (signed || busy) return;
+        setBusy("sign");
+        try {
+            await readMarketResult(calendarSignRebate());
+            setSigned(true);
+            notice.success("签到成功");
+            refreshAfterReward();
+        } catch (e) { notice.error(e instanceof Error ? e.message : "签到失败，请重试"); }
+        finally { setBusy(""); }
     }
 
-    return (
-        <div className={styles["container"]} style={{backgroundImage: "url('/background.svg')"}}>
-            {calendarOpen && <SignCalendar refresh={refresh} onClose={() => setCalendarOpen(false)}/>}
-            <Button type="text" size="small" className={styles.calendarButton} icon={<CalendarOutlined/>} onClick={() => setCalendarOpen(true)}>查看日历</Button>
-            {/* 会员卡 */}
-            <MemberCardButton allRefresh={refresh} activityId={activityId}/>
+    async function exchange(sku: number) {
+        if (busy) return;
+        if (exchangeRequest.current?.sku !== sku) {
+            exchangeRequest.current = {sku, requestId: crypto.randomUUID()};
+        }
+        const pendingRequest = exchangeRequest.current;
+        if (!pendingRequest) return;
+        const requestId = pendingRequest.requestId;
+        setBusy(sku);
+        try {
+            await readMarketResult(creditPayExchangeSku(sku, requestId));
+            exchangeRequest.current = undefined;
+            notice.success("兑换成功");
+            refreshAfterReward();
+        } catch (e) { notice.error(e instanceof Error ? e.message : "兑换失败，请重试"); }
+        finally { setBusy(""); }
+    }
 
-            {/*/!* 中间的两个div元素 *!/*/}
-            <div className={styles["lucky-container"]}>
-                <div className={styles["lucky-card"]}>
-                    <div className={styles["lucky-text-gray"]}>
-                        <LuckyGridPage handleRefresh={handleRefresh} activityId={activityId}/>
-                    </div>
-                </div>
-            </div>
-
-            {/* 商品 */}
-            <SkuProductButton handleRefresh={handleRefresh} activityId={activityId}/>
-
+    return <div className={styles.market}>
+        {holder}
+        {calendarOpen && <SignCalendar refresh={refresh} onClose={() => setCalendarOpen(false)}/>}
+        <header className={styles.heading}>
+            <div><p>福利中心</p><h1>幸运抽奖</h1></div>
+            <Button type="text" onClick={() => setRules(true)}>活动规则</Button>
+        </header>
+        <div className={styles.accountBand}>
+            <div><WalletOutlined/><span>我的积分<strong>{credit ?? "—"}</strong></span></div>
+            <div><GiftOutlined/><span>今日剩余次数<strong>{draws ?? "—"}</strong></span></div>
+            <div><MessageOutlined/><span>对话额度<strong>{quota ?? "—"}</strong></span></div>
+            <Tooltip title="刷新账户"><Button type="text" icon={<ReloadOutlined spin={loading}/>} aria-label="刷新账户" onClick={reload} disabled={loading}/></Tooltip>
         </div>
-    );
+        {error && <Alert className={styles.error} type="warning" showIcon message={error} action={<Button size="small" onClick={reload}>重试</Button>}/>}
+        <div className={styles.activity}>
+            <section className={styles.drawSection} aria-label="幸运抽奖盘">
+                <div className={styles.sectionTitle}><h2><GiftOutlined/>幸运九宫格</h2><span>{activityId ? "活动 " + activityId : "加载中"}</span></div>
+                {activityId ? <LuckyGridPage activityId={activityId} refresh={refresh} onWin={title => {
+                    setResults(items => [{title, time: new Date().toLocaleTimeString("zh-CN", {hour: "2-digit", minute: "2-digit"})}, ...items].slice(0, 5));
+                    refreshAfterReward();
+                }}/> : <div className={styles.boardPlaceholder}>{loading ? <Spin/> : "暂无可参与的活动"}</div>}
+            </section>
+            <aside className={styles.activityAside}>
+                <section className={styles.signSection}>
+                    <div className={styles.sectionTitle}><h2>每日签到</h2><Button type="text" size="small" className={styles.calendarButton} icon={<CalendarOutlined/>} onClick={() => setCalendarOpen(true)}>查看日历</Button></div>
+                    <p className={styles.date}>{new Date().toLocaleDateString("zh-CN", {timeZone: "Asia/Shanghai", month: "long", day: "numeric", weekday: "long"})}</p>
+                    <div className={styles.signStatus}><span className={styles.signIcon}><CalendarOutlined/></span><div><strong>{signed ? "今天也有新收获" : "新一天，来签到"}</strong><p>{username}</p></div></div>
+                    <Button type={signed ? "default" : "primary"} block disabled={signed || Boolean(busy)} loading={busy === "sign"} onClick={signIn} icon={signed ? <CheckCircleFilled/> : undefined}>{signed ? "今日已签到" : "立即签到"}</Button>
+                </section>
+                <section className={styles.resultsSection}>
+                    <div className={styles.sectionTitle}><h2>本次中奖记录</h2><span>{results.length} 条</span></div>
+                    {results.length ? <ul className={styles.results}>{results.map((result, index) => <li key={index}><GiftOutlined/><span>{result.title}</span><time>{result.time}</time></li>)}</ul> :
+                        <div className={styles.empty}><GiftOutlined/><strong>还没有新的收获</strong><span>期待你的第一份奖励</span></div>}
+                </section>
+            </aside>
+        </div>
+        <section className={styles.exchangeSection}>
+            <div className={styles.sectionTitle}><h2>积分兑换</h2><span>抽奖机会</span></div>
+            <div className={styles.products}>
+                {products.map(product => <article className={styles.product} key={product.sku}>
+                    <div className={styles.productIcon}><GiftOutlined/></div>
+                    <div><h3>{product.activityCount.totalCount} 次抽奖</h3><p>每日上限 {product.activityCount.dayCount} 次</p><strong>{product.productAmount} <span>积分</span></strong></div>
+                    <Button loading={busy === product.sku} disabled={Boolean(busy) || product.stockCountSurplus <= 0 || credit === null || credit < product.productAmount} onClick={() => exchange(product.sku)}>
+                        {product.stockCountSurplus <= 0 ? "已兑完" : credit !== null && credit < product.productAmount ? "积分不足" : "兑换"}
+                    </Button>
+                </article>)}
+                {!loading && !products.length && <p className={styles.muted}>暂无可兑换的商品</p>}
+            </div>
+        </section>
+        <Modal title="活动规则" open={rules} onCancel={() => setRules(false)} footer={<Button type="primary" onClick={() => setRules(false)}>知道了</Button>}>
+            <ol className={styles.rules}><li>每次抽奖消耗 1 次活动机会，次数以账户当前额度为准。</li><li>签到奖励由当前活动配置决定，到账后可刷新账户查看。</li><li>积分可兑换抽奖机会，兑换受剩余库存及账户积分限制。</li><li>部分奖品在达到参与次数后解锁，具体条件见奖品状态。</li><li>抽奖结果以服务端返回为准，奖励异步发放。</li></ol>
+        </Modal>
+    </div>;
 }

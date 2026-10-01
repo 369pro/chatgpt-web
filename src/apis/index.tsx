@@ -184,7 +184,7 @@ export const queryUserCreditAccount = ()=>{
  * 抽奖接口
  * @param activityId 用户ID
  */
-export const draw = (activityId?: number) => {
+export const draw = (activityId?: number, requestId?: string) => {
     try {
         return fetch(`${bigMarketApiHostUrl}/api/v1/raffle/activity/draw_by_token`, {
             method: 'POST',
@@ -219,7 +219,8 @@ export const queryRaffleAwardList = (activityId?: number) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                activityId: activityId
+                activityId: activityId,
+                ...(requestId ? {requestId} : {})
             })
         });
     } catch (error) {
@@ -249,7 +250,7 @@ export const querySkuProductListByActivityId = (activityId?: number)=>{
     }
 }
 
-export const creditPayExchangeSku = (sku?: number) => {
+export const creditPayExchangeSku = (sku?: number, requestId?: string) => {
     try {
         return fetch(`${bigMarketApiHostUrl}/api/v1/raffle/activity/credit_pay_exchange_sku_by_token`, {
             method: 'POST',
@@ -258,7 +259,8 @@ export const creditPayExchangeSku = (sku?: number) => {
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify({
-                sku: sku
+                sku: sku,
+                ...(requestId ? {requestId} : {})
             })
         })
     } catch (error) {

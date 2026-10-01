@@ -1,0 +1,17 @@
+.wrapper { width: 100%; min-width: 0; }
+.board { position: relative; max-width: 100%; margin: 0 auto; display: grid; place-items: center; background: #fff8e9; border-radius: 8px; overflow: hidden; }
+.lockedOverlay { position: absolute; inset: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 7px; pointer-events: none; }
+.lockedPrize { position: relative; min-width: 0; border-radius: 5px; background: #f1f2f4; overflow: hidden; }
+.lockedPrize > img { position: absolute; width: 60%; height: 60%; object-fit: contain; left: 20%; top: 5%; filter: grayscale(1); opacity: .3; }
+.lockedPrize .lockIcon { position: absolute; right: 7px; top: 7px; color: #a66b13; font-size: 14px; }
+.lockedPrize > span:last-child { position: absolute; top: 79%; left: 3%; width: 94%; color: #7b818b; text-align: center; font-size: 11px; line-height: 1.4; }
+@media (max-width: 600px) { .lockedPrize > span:last-child { font-size: 10px; } .lockedPrize .lockIcon { font-size: 12px; right: 5px; top: 5px; } }
+.drawButton { display: block; width: 100%; max-width: 440px; height: 44px; margin: 16px auto 0; background: #e98e24; border-color: #e98e24; box-shadow: none; font-size: 15px; font-weight: 600; }
+.drawButton:not(:disabled):hover { background: #d87d16 !important; border-color: #d87d16 !important; }
+.cost { font-size: 12px; text-align: center; margin: 10px 0 0; color: #939ba8; }
+.wrapper :global(.ant-alert) { margin-top: 16px; font-size: 12px; }
+.accessiblePrizes { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.winner { text-align: center; padding: 25px 0; }
+.winner > span { color: #e9a02b; font-size: 48px; }
+.winner h3 { font-size: 22px; margin: 20px 0 10px; }
+.winner p { font-size: 13px; color: #8b94a3; }
