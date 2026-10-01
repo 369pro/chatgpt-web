@@ -283,3 +283,13 @@ export const queryStageActivityId = () => {
 
 
 
+
+/** 按月查询当前用户的签到日期（YYYY-MM-DD）。 */
+export const queryCalendarSignRecords = (month: string, signal?: AbortSignal) => {
+    return fetch(`${bigMarketApiHostUrl}/api/v1/raffle/activity/query_calendar_sign_records_by_token?${new URLSearchParams({month})}`, {
+        method: "POST",
+        headers: getHeaders(),
+        signal,
+    });
+};
+

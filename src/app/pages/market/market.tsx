@@ -1,4 +1,7 @@
 import {useEffect, useState} from "react";
+import {Button} from "antd";
+import {CalendarOutlined} from "@ant-design/icons";
+import {SignCalendar} from "./element/sign-calendar";
 import dynamic from "next/dynamic";
 import styles from "./market.module.scss";
 
@@ -13,6 +16,7 @@ const SkuProductButton = dynamic(async () => (await import("./element/SkuProduct
 export function Market() {
 
     const [refresh, setRefresh] = useState(0);
+    const [calendarOpen, setCalendarOpen] = useState(false);
     const [activityId, setActivityId] = useState(0);
     const [loading, setLoading] = useState(true);
 
@@ -54,6 +58,8 @@ export function Market() {
 
     return (
         <div className={styles["container"]} style={{backgroundImage: "url('/background.svg')"}}>
+            {calendarOpen && <SignCalendar refresh={refresh} onClose={() => setCalendarOpen(false)}/>}
+            <Button type="text" size="small" className={styles.calendarButton} icon={<CalendarOutlined/>} onClick={() => setCalendarOpen(true)}>查看日历</Button>
             {/* 会员卡 */}
             <MemberCardButton allRefresh={refresh} activityId={activityId}/>
 

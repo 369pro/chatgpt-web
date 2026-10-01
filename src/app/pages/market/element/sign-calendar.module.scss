@@ -1,0 +1,18 @@
+.toolbar { display: flex; align-items: center; gap: 8px; margin: 22px 0 12px; }
+.toolbar h3 { flex: 1; margin: 0; text-align: center; font-size: 17px; font-weight: 600; color: #252a34; }
+.summary { margin-bottom: 20px; color: #626b7c; font-size: 13px; min-height: 22px; }
+.summary strong { color: #2878ff; font-size: 18px; margin: 0 3px; }
+.calendar { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 4px; }
+.calendar th { padding-bottom: 12px; font-size: 12px; font-weight: 400; color: #778294; }
+.calendar td { padding: 0; }
+.day { box-sizing: border-box; height: 60px; border: 1px solid transparent; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; color: #252a34; font-variant-numeric: tabular-nums; }
+.day > span { font-size: 15px; }
+.day small { height: 16px; display: flex; align-items: center; gap: 3px; font-size: 10px; white-space: nowrap; }
+.signed { color: #2161c2; background: #edf3ff; }
+.today { border-color: #2878ff; }
+.future { color: #a0a8b4; }
+.hint { display: flex; align-items: center; gap: 5px; margin: 18px 4px 2px; font-size: 12px; color: #626b7c; }
+.hint > :first-child { color: #2161c2; }
+.hint > span:last-child { margin-left: auto; color: #778294; }
+.loading { height: 330px; display: grid; place-items: center; }
+@media (max-width: 420px) { .calendar { border-spacing: 2px; } .day { height: 54px; } .day small { font-size: 9px; gap: 2px; } }
