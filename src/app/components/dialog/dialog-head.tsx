@@ -1,27 +1,45 @@
-import styles from './dialog-head.module.scss'
-import {userChatStore} from "@/app/store/chat-store";
+import {Button, Tooltip} from "antd";
+import {PlusOutlined} from "@ant-design/icons";
+import styles from "./dialog-head.module.scss";
+import {CHAT_REQUEST_FINISHED_EVENT, userChatStore} from "@/app/store/chat-store";
 import {useNavigate} from "react-router-dom";
+import {useCallback, useEffect, useState} from "react";
+import {AccountBalance, formatBalance, queryAccountBalance} from "@/apis/account-balance";
 
-export function DialogHead(){
+type BalanceResult = {code?: string; data?: AccountBalance};
+
+export function DialogHead() {
     const navigate = useNavigate();
     const chatStore = userChatStore();
-    const [sessions, currentSessionIndex, selectSession] = userChatStore(
-        (state) => [
-            state.sessions,
-            state.currentSessionIndex,
-            state.selectSession]);
-    return (
-        <div className={styles["dialog-head"]}>
-            <div className={styles["dialog-search-box"]}>
-                <input type="button" value={"👉 点击进入此项目课程地址"} onClick={() => window.open('https://bugstack.cn/md/project/chatgpt/chatgpt.html')}/>
-            </div>
-            <div className={styles["dialog-search-add"]} onClick={() => {
-                let session = chatStore.openSession();
-                // 点击时跳转到对应的界面，并传递必要参数信息
-                selectSession(0)
-                navigate(`/chat/${session.id}`, {state: {title: session.dialog.title}})
-            }}></div>
-        </div>
-    );
+    const [balance, setBalance] = useState<AccountBalance | null>(null);
+    const refreshBalance = useCallback(async () => {
+        try {
+            const response = await queryAccountBalance();
+            if (!response.ok) return;
+            const result = await response.json() as BalanceResult;
+            if (result.code === "0000" && result.data) setBalance(result.data);
+        } catch {
+            // The compact header is best-effort; sale and market pages show full errors.
+        }
+    }, []);
 
+    useEffect(() => {
+        void refreshBalance();
+        const handleRequestFinished = () => { void refreshBalance(); };
+        window.addEventListener(CHAT_REQUEST_FINISHED_EVENT, handleRequestFinished);
+        return () => window.removeEventListener(CHAT_REQUEST_FINISHED_EVENT, handleRequestFinished);
+    }, [refreshBalance]);
+
+    return <div className={styles["dialog-head"]}>
+        <strong className={styles.title}>我的对话</strong>
+        <div className={styles.balance} aria-label="钱包余额和历史额度">
+            <span>余额 {balance ? formatBalance(balance.availableAmount) : "—"}</span>
+            <span>历史额度 {balance?.legacyQuota === undefined || balance.legacyQuota === null ? "—" : `${balance.legacyQuota} 次`}</span>
+        </div>
+        <Tooltip title="新建对话"><Button type="text" icon={<PlusOutlined/>} aria-label="新建对话" onClick={() => {
+            const session = chatStore.openSession();
+            chatStore.selectSession(0);
+            navigate("/chat/" + session.id, {state: {title: session.dialog.title}});
+        }}/></Tooltip>
+    </div>;
 }

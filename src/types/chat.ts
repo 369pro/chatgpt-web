@@ -22,16 +22,24 @@ export interface Message {
     role: MessageRole;
     id: string;
     streaming?: boolean;
+    status?: MessageStatus;
+    error?: string;
 }
 
 export interface SessionConfig {
-    gptVersion: GptVersion;
+    gptVersion: string;
 }
 
 export enum MessageRole {
     system = "system",
     user = "user",
     assistant = "assistant",
+}
+
+export enum MessageStatus {
+    Sending = "sending",
+    Error = "error",
+    Cancelled = "cancelled",
 }
 
 export enum MessageType {

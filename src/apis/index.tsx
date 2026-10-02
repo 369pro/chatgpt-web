@@ -1,9 +1,9 @@
-import {GptVersion} from "@/app/constants";
+import {ChatModelOption} from "@/app/constants";
 import {useAccessStore} from "@/app/store/access";
 import {MessageRole} from "@/types/chat";
 
 // 构建前把localhost修改为你的公网IP或者域名地址 https://api.gaga.plus http://127.0.0.1:8091
-const openAIApiHostUrl = "http://127.0.0.1:8091";
+const openAIApiHostUrl = process.env.NEXT_PUBLIC_API_HOST_URL || "http://127.0.0.1:8093";
 const bigMarketApiHostUrl = "http://127.0.0.1:8098";
 
 // const openAIApiHostUrl = "https://api.gaga.plus";
@@ -31,18 +31,55 @@ export const getRoleList = () => {
     return fetch(`/prompts.json`).then((res) => res.json());
 };
 
+export const getModelCatalog = async (signal?: AbortSignal): Promise<ChatModelOption[]> => {
+    const response = await fetch(`${openAIApiHostUrl}/api/v1/chatgpt/models`, {
+        method: "GET",
+        headers: getHeaders(),
+        signal,
+    });
+    if (!response.ok) {
+        throw new Error(`模型列表请求失败（HTTP ${response.status}）`);
+    }
+
+    const result: unknown = await response.json();
+    if (!Array.isArray(result)) {
+        throw new Error("模型列表格式无效");
+    }
+
+    const models = result.flatMap((item) => {
+        if (!item || typeof item !== "object") return [];
+        const candidate = item as Partial<ChatModelOption>;
+        if (typeof candidate.id !== "string" || !candidate.id) return [];
+        return [{
+            id: candidate.id,
+            displayName: typeof candidate.displayName === "string" && candidate.displayName
+                ? candidate.displayName
+                : candidate.id,
+            provider: typeof candidate.provider === "string" ? candidate.provider : "",
+            inputPrice: typeof candidate.inputPrice === "string" ? candidate.inputPrice : undefined,
+            cachedInputPrice: typeof candidate.cachedInputPrice === "string" ? candidate.cachedInputPrice : undefined,
+            outputPrice: typeof candidate.outputPrice === "string" ? candidate.outputPrice : undefined,
+        }];
+    });
+
+    if (!models.length) throw new Error("模型列表为空");
+    return models;
+};
+
 /**
  * 流式应答接口
  * @param data
  */
 export const completions = (data: {
     messages: { content: string; role: MessageRole }[],
-    model: GptVersion
-}) => {
+    model: string,
+    requestId?: string,
+}, signal?: AbortSignal) => {
     return fetch(`${openAIApiHostUrl}/api/v1/chatgpt/chat/completions`, {
         method: 'post',
         headers: getHeaders(),
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
+        signal,
     });
 };
 

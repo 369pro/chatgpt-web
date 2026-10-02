@@ -7,22 +7,42 @@ export enum Path {
 }
 
 export enum GptVersion {
-    TEXT_DAVINCI_003 = "text-davinci-003",
-    TEXT_DAVINCI_002 = "text-davinci-002",
-    DAVINCI = "davinci",
-    GPT_3_5_TURBO = "gpt-3.5-turbo",
-    GPT_3_5_TURBO_16K = "gpt-3.5-turbo-16k",
-    GPT_4 = "gpt-4",
-    GPT_4o = "gpt-4o",
-    GPT_4_32K = "gpt-4-32k",
-    CHATGLM_6B_SSE = "chatGLM_6b_SSE",
-    CHATGLM_LITE = "chatglm_lite",
-    CHATGLM_LITE_32K = "chatglm_lite_32k",
-    CHATGLM_STD = "chatglm_std",
-    CHATGLM_PRO = "chatglm_pro",
-    CHATGLM_Turbo = "chatglm_turbo",
-    GLM_4 = "glm-4",
-    DALL_E_2 = "dall-e-2",
-    DALL_E_3 = "dall-e-3",
+    DEEPSEEK_FLASH = "deepseek-flash",
+    DEEPSEEK_V4_PRO = "deepseek-v4-pro",
+}
 
+export const DEFAULT_GPT_VERSION = GptVersion.DEEPSEEK_FLASH;
+
+export interface ChatModelOption {
+    id: string;
+    displayName: string;
+    provider: string;
+    inputPrice?: string;
+    cachedInputPrice?: string;
+    outputPrice?: string;
+}
+
+export const DEFAULT_CHAT_MODELS: ChatModelOption[] = [
+    {
+        id: GptVersion.DEEPSEEK_FLASH,
+        displayName: "DeepSeek V4.1 Flash",
+        provider: "deepseek",
+    },
+    {
+        id: GptVersion.DEEPSEEK_V4_PRO,
+        displayName: "DeepSeek V4 Pro",
+        provider: "deepseek",
+    },
+];
+
+/** Normalize only persisted legacy aliases; outbound model IDs stay unchanged. */
+export function normalizeGptVersion(model?: string): string {
+    switch (model) {
+        case "deepseek-chat":
+        case "deepseek-v4-flash":
+        case "deepseek-reasoner":
+            return GptVersion.DEEPSEEK_FLASH;
+        default:
+            return model || DEFAULT_GPT_VERSION;
+    }
 }

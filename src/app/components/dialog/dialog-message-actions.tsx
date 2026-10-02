@@ -1,10 +1,11 @@
-import {ClearOutlined} from '@ant-design/icons';
+import {ClearOutlined, InfoCircleOutlined} from '@ant-design/icons';
 import styles from '@/app/components/dialog/dialog-message-action.module.scss';
-import {Select} from 'antd'
+import {Button, Select, Tooltip} from 'antd'
 import {userChatStore} from '@/app/store/chat-store';
-import {GptVersion} from '../../constants'
+import {DEFAULT_CHAT_MODELS, DEFAULT_GPT_VERSION, normalizeGptVersion} from '../../constants'
+import {getModelCatalog} from '@/apis';
 import {SessionConfig} from "@/types/chat";
-import { CSSProperties, useRef, useState } from 'react';
+import {CSSProperties, useEffect, useRef, useState} from 'react';
 
 export function Action(props: {
     icon: JSX.Element;
@@ -70,35 +71,47 @@ export default function DialogMessagesActions(props: {
     config: SessionConfig
 }){
     const chatStore = userChatStore();
-    const {config} = props
+    const {config} = props;
+    const [models, setModels] = useState(DEFAULT_CHAT_MODELS);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        getModelCatalog(controller.signal)
+            .then(setModels)
+            .catch(() => {
+                if (!controller.signal.aborted) setModels(DEFAULT_CHAT_MODELS);
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setLoading(false);
+            });
+        return () => controller.abort();
+    }, []);
+
+    const selectedModel = normalizeGptVersion(config?.gptVersion || DEFAULT_GPT_VERSION);
+    const tariff = models.find((model) => model.id === selectedModel);
+    const options = models.some((model) => model.id === selectedModel)
+        ? models
+        : [{id: selectedModel, displayName: selectedModel, provider: ""}, ...models];
+
     return <div className={styles['chat-input-actions']}>
         <Select
-            value={config?.gptVersion??GptVersion.GLM_4}
-            style={{ width: 160 }}
-            options={[
-                // { value: GptVersion.CHATGLM_LITE, label: 'chatglm_lite' },
-                // { value: GptVersion.CHATGLM_STD, label: 'chatglm_std' },
-                // { value: GptVersion.CHATGLM_PRO, label: 'chatglm_pro' },
-                { value: GptVersion.GLM_4, label: 'glm-4' },
-                // { value: GptVersion.DALL_E_3, label: 'dall-e-3(画图)' },
-                // { value: GptVersion.GPT_3_5_TURBO_16K, label: 'gpt-3.5-turbo-16k' },
-                // { value: GptVersion.DALL_E_2, label: 'dall-e-2(画图)' },
-                { value: GptVersion.GPT_3_5_TURBO, label: 'gpt-3.5-turbo' },
-                { value: GptVersion.GPT_4, label: 'gpt-4' },
-                // { value: GptVersion.GPT_4o, label: 'gpt-4o' },
-                // { value: GptVersion.CHATGLM_6B_SSE, label: 'chatGLM_6b_SSE' },
-                // { value: GptVersion.GPT_4, label: 'gpt-4【暂无】' },
-                // { value: GptVersion.GPT_4_32K, label: 'gpt-4-32k【暂无】' },
-            ]}
+            value={selectedModel}
+            loading={loading}
+            style={{ width: 208, maxWidth: '100%' }}
+            options={options.map((model) => ({value: model.id, label: model.displayName}))}
             onChange={(value) => {
                 chatStore.updateCurrentSession((session) => {
                     session.config = {
                         ...session.config,
-                        gptVersion: value
+                        gptVersion: value,
                     }
                 });
             }}
         />
+        {tariff?.inputPrice !== undefined && <Tooltip title={`每百万 Token：输入 ¥${tariff.inputPrice}，缓存 ¥${tariff.cachedInputPrice}，输出 ¥${tariff.outputPrice}。历史次数优先抵扣。`}>
+            <Button type="text" size="small" aria-label="模型计费价格" icon={<InfoCircleOutlined />} />
+        </Tooltip>}
         <ChatAction text="清除聊天" icon={<ClearOutlined />} onClick={() => {
             chatStore.updateCurrentSession((session) => {
                 if (session.clearContextIndex === session.messages.length) {

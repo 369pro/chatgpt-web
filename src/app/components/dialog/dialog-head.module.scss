@@ -3,6 +3,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   height: 30px;
   padding: 15px;
   cursor: pointer;
@@ -14,6 +15,14 @@
   background-color: #ffffff;
 
   //background-color: #37c411;
+}
+
+.title { flex-shrink: 0; }
+
+.balance {
+  display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: flex-end;
+  color: #7a8495; font-size: 10px; line-height: 1.35;
+  span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
 
 .dialog-search-box {
@@ -67,4 +76,7 @@
 
 .dialog-search-add::after {
   transform: translate(-50%, -50%);
+}
+@media (max-width: 600px) {
+  .balance { display: none; }
 }
