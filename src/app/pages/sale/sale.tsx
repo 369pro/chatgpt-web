@@ -374,7 +374,7 @@ export function Sale() {
                 )}</div>}
         {payment && !showModal && !complete && !closed &&
             <Button className={styles.pending} onClick={() => setShowModal(true)}>查看待支付订单 {payment.orderId}</Button>}
-        <Modal title={complete ? '余额已到账' : closed ? '订单已关闭' : '支付宝沙箱支付'}
+        <Modal title={complete ? (payment?.creditAmount === null ? '历史额度已到账' : '余额已到账') : closed ? '订单已关闭' : '支付宝沙箱支付'}
                open={showModal} onCancel={dismissPayment} footer={null} width={460}>
             {payment && <div className={styles.checkout}>
                 {complete && <CheckCircleFilled className={styles.success}/>}
