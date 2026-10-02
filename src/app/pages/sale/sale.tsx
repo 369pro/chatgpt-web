@@ -12,7 +12,8 @@ type PaymentStatus = 'CREATE' | 'WAIT' | 'COMPLETED' | 'CLOSE';
 
 type Payment = {
     orderId: string; status: PaymentStatus;
-    payUrl?: string; amount: number; creditAmount: string | null; quota: number | null;
+    payUrl?: string; amount: number; creditAmount: string | null; feeRate: string | null; feeAmount: string | null;
+    quota: number | null;
     productName: string; expiresAt: number;
 };
 
@@ -40,6 +41,25 @@ function formatCny(value: string | number | null): string {
     return value === null ? '—' : formatBalance(String(value));
 }
 
+function parseFeeRate(value: unknown): string | null {
+    if (typeof value === 'number') {
+        return Number.isFinite(value) && value >= 0 && value <= 1 ? String(value) : null;
+    }
+    if (typeof value !== 'string') return null;
+    const normalized = value.trim();
+    if (!/^\d+(\.\d{1,8})?$/.test(normalized)) return null;
+    const numeric = Number(normalized);
+    return Number.isFinite(numeric) && numeric >= 0 && numeric <= 1 ? normalized : null;
+}
+
+function formatFeeRate(value: string | number | null): string {
+    if (value === null) return '—';
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric < 0 || numeric > 1) return '—';
+    const percentage = (numeric * 100).toFixed(8).replace(/0+$/, '').replace(/\.$/, '');
+    return `${percentage}%`;
+}
+
 function parsePayment(value: unknown): Payment | null {
     if (!value || typeof value !== 'object') return null;
     const candidate = value as Record<string, unknown>;
@@ -51,6 +71,10 @@ function parsePayment(value: unknown): Payment | null {
     const creditAmount = rawCreditAmount === null || rawCreditAmount === undefined
         ? null
         : parseMoney(rawCreditAmount);
+    const rawFeeRate = candidate.feeRate;
+    const feeRate = rawFeeRate === null || rawFeeRate === undefined ? null : parseFeeRate(rawFeeRate);
+    const rawFeeAmount = candidate.feeAmount;
+    const feeAmount = rawFeeAmount === null || rawFeeAmount === undefined ? null : parseMoney(rawFeeAmount);
     const rawQuota = candidate.quota;
     const quota = rawQuota === null || rawQuota === undefined || rawQuota === '' ? null : Number(rawQuota);
     const expiresAt = Number(candidate.expiresAt);
@@ -58,11 +82,13 @@ function parsePayment(value: unknown): Payment | null {
         typeof productName !== 'string' || !productName ||
         !Number.isFinite(amount) ||
         (creditAmount === null && rawCreditAmount !== null && rawCreditAmount !== undefined) ||
+        (feeRate === null && rawFeeRate !== null && rawFeeRate !== undefined) ||
+        (feeAmount === null && rawFeeAmount !== null && rawFeeAmount !== undefined) ||
         (quota !== null && !Number.isFinite(quota)) || (creditAmount === null && quota === null) ||
         !Number.isFinite(expiresAt)) return null;
     const payUrl = typeof candidate.payUrl === 'string' && candidate.payUrl.trim() ? candidate.payUrl : undefined;
     return {
-        orderId, status, amount, creditAmount, quota, productName, expiresAt,
+        orderId, status, amount, creditAmount, feeRate, feeAmount, quota, productName, expiresAt,
         ...(payUrl ? {payUrl} : {}),
     };
 }
@@ -358,6 +384,7 @@ export function Sale() {
                     onClick={() => void refreshBalance().catch(e => setError(e instanceof Error ? e.message : '余额加载失败'))}
                     disabled={balanceRefreshing}/>
         </div>
+        <p className={styles.feeRule}>手续费规则：本次支付金额 ≤ ¥50 收取 20%，超过 ¥50 收取 10%，按本次支付金额全额计算；实际以订单返回为准。</p>
         {loading ? <div className={styles.loading}><Spin/></div> :
             products.length === 0 ? <Empty description="暂无可购买套餐"/> :
                 <div className={styles.products}>{products.map(product =>
@@ -367,6 +394,7 @@ export function Sale() {
                         <div className={styles.creditAmount}>到账余额 <strong>{formatCny(product.creditAmount)}</strong></div>
                         <p>{product.productDesc}</p>
                         <div className={styles.price}>支付 {formatCny(product.price)}</div>
+                        <div className={styles.fee}>手续费 {formatFeeRate(product.feeRate ?? null)} · {formatCny(product.feeAmount ?? null)}</div>
                         <Button type="primary" block icon={<AlipayCircleOutlined/>}
                                 loading={busy === product.productId} disabled={busy !== null && busy !== product.productId}
                                 onClick={() => payOrder(product.productId)}>支付 {formatCny(product.price)}</Button>
@@ -381,8 +409,12 @@ export function Sale() {
                 <h2>{payment.productName}</h2>
                 <div className={styles.checkoutAmount}>支付 {formatCny(payment.amount)}</div>
                 <dl><dt>订单编号</dt><dd>{payment.orderId}</dd>
-                    <dt>{payment.creditAmount === null ? '历史对话额度' : '到账余额'}</dt>
-                    <dd>{payment.creditAmount === null ? `${payment.quota} 次` : formatCny(payment.creditAmount)}</dd>
+                    <dt>支付金额</dt><dd>{formatCny(payment.amount)}</dd>
+                    {payment.creditAmount === null ? <><dt>历史对话额度</dt><dd>{payment.quota} 次</dd></> : <>
+                        <dt className={styles.feeDetail}>手续费比例</dt><dd className={styles.feeDetail}>{formatFeeRate(payment.feeRate)}</dd>
+                        <dt className={styles.feeDetail}>手续费</dt><dd className={styles.feeDetail}>{formatCny(payment.feeAmount)}</dd>
+                        <dt>净到账余额</dt><dd>{formatCny(payment.creditAmount)}</dd>
+                    </>}
                     {complete && <><dt>钱包余额</dt><dd>{walletBalance === null ? '刷新中…' : formatCny(walletBalance)}</dd></>}
                     <dt>当前状态</dt><dd>{complete ? '已支付 · 已到账' : closed ? '已关闭' : payment.status === 'WAIT' ? '已支付 · 到账处理中' : '等待付款'}</dd></dl>
                 {checkError && <Alert showIcon type="warning" message={checkError}/>}
