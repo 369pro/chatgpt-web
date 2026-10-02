@@ -98,6 +98,15 @@ function clearPendingPayment() {
     try { sessionStorage.removeItem(pendingPaymentUrlKey); } catch { /* storage unavailable */ }
 }
 
+function clearCompletedPayment(orderId: string) {
+    try {
+        if (readPendingPayment()?.orderId === orderId) clearPendingPayment();
+    } catch { clearPendingPayment(); }
+    try {
+        if (sessionStorage.getItem(returnOrderKey) === orderId) sessionStorage.removeItem(returnOrderKey);
+    } catch { /* storage unavailable */ }
+}
+
 async function readApiResult<T>(request: Promise<Response>, fallback: string): Promise<ApiResult<T>> {
     let response: Response;
     try {
@@ -131,6 +140,7 @@ export function Sale() {
     const pollBusy = useRef(false);
     const quotaRefreshOrder = useRef<string | null>(null);
     const recoveryAttemptedOrder = useRef<string | null>(null);
+    const dismissedOrder = useRef<string | null>(null);
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -173,6 +183,7 @@ export function Sale() {
             if (result.code !== SaleProductEnum.SUCCESS) throw new Error(result.info || '支付结果确认中');
             const snapshot = parsePayment(result.data);
             if (!snapshot || snapshot.orderId !== orderId) throw new Error('支付结果格式无效，请稍后重试');
+            if (dismissedOrder.current === orderId) return;
             let previous: Payment | null = null;
             try { previous = readPendingPayment(); } catch { /* ignore stale storage */ }
             const recovered = mergePayment(previous, snapshot);
@@ -180,9 +191,8 @@ export function Sale() {
             setShowModal(true);
             setError('');
             setCheckError('');
-            if (snapshot.status === 'CLOSE') {
-                clearPendingPayment();
-                try { sessionStorage.removeItem(returnOrderKey); } catch { /* storage unavailable */ }
+            if (snapshot.status === 'CLOSE' || snapshot.status === 'COMPLETED') {
+                clearCompletedPayment(orderId);
             } else {
                 persistPendingPayment(recovered);
             }
@@ -207,12 +217,7 @@ export function Sale() {
             setPayment(previous => mergePayment(previous, snapshot));
             setCheckError('');
             if (snapshot.status === 'COMPLETED' || snapshot.status === 'CLOSE') {
-                clearPendingPayment();
-            }
-            if (snapshot.status === 'CLOSE') {
-                try {
-                    if (sessionStorage.getItem(returnOrderKey) === id) sessionStorage.removeItem(returnOrderKey);
-                } catch { /* storage unavailable */ }
+                clearCompletedPayment(id);
             }
             if (snapshot.status === 'COMPLETED') {
                 await refreshQuota(id);
@@ -291,6 +296,16 @@ export function Sale() {
     const expired = !!payment && Date.now() >= payment.expiresAt;
     const checkout = payment && !complete && !closed ? validateCheckoutUrl(payment.payUrl) : null;
 
+    const dismissPayment = () => {
+        setShowModal(false);
+        if (!payment) return;
+        dismissedOrder.current = payment.orderId;
+        if (complete || closed) {
+            clearCompletedPayment(payment.orderId);
+            setPayment(null);
+        }
+    };
+
     return <section className={styles.sale}>
         <header className={styles.heading}>
             <div><span className={styles.eyebrow}>个人中心</span><h1>额度商城</h1></div>
@@ -321,7 +336,7 @@ export function Sale() {
         {payment && !showModal && !complete && !closed &&
             <Button className={styles.pending} onClick={() => setShowModal(true)}>查看待支付订单 {payment.orderId}</Button>}
         <Modal title={complete ? '额度已到账' : closed ? '订单已关闭' : '支付宝沙箱支付'}
-               open={showModal} onCancel={() => setShowModal(false)} footer={null} width={460}>
+               open={showModal} onCancel={dismissPayment} footer={null} width={460}>
             {payment && <div className={styles.checkout}>
                 {complete && <CheckCircleFilled className={styles.success}/>}
                 <h2>{payment.productName}</h2>
@@ -332,11 +347,12 @@ export function Sale() {
                 {checkError && <Alert showIcon type="warning" message={checkError}/>}
                 {checkoutError && <Alert showIcon type="warning" message={checkoutError}/>}
                 {complete ? <>
-                    <Button type="primary" block onClick={() => navigate('/chat')}>开始对话</Button>
+                    <Button type="primary" block onClick={() => { dismissPayment(); navigate('/chat'); }}>开始对话</Button>
+                    <Button block onClick={dismissPayment}>返回商城</Button>
                     {quota === null && <Button block icon={<ReloadOutlined/>} loading={quotaRefreshing}
                                                onClick={() => void refreshQuota(payment.orderId).catch(e => setCheckError(e instanceof Error ? e.message : '额度刷新失败'))}>刷新额度</Button>}
                 </> :
-                    closed ? <Button block onClick={() => setShowModal(false)}>返回商城</Button> : <>
+                    closed ? <Button block onClick={dismissPayment}>返回商城</Button> : <>
                         {expired ? <Alert type="info" message="订单已过支付期限，正在确认最终状态"/> :
                             <Button type="primary" size="large" block icon={<AlipayCircleOutlined/>}
                                     href={checkout?.href} target={checkout?.href ? '_blank' : undefined}
