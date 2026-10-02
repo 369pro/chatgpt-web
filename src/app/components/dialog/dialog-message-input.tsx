@@ -50,7 +50,8 @@ export function DialogMessageInput(props: Props) {
                 autoFocus
                 onKeyDown={handleKeyDown}/>
             <Button disabled={!value?.length} type="primary" className={styles.btn}
-                    onClick={() => onSend(value)}>发送({sendShortcut})</Button>
+                    title={`发送 (${sendShortcut})`}
+                    onClick={() => onSend(value)}>发送</Button>
         </div>
 
     );
