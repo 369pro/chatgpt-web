@@ -1,124 +1,41 @@
 .sale {
-  display: flex;
-  flex-wrap: wrap;
-  font-family: "黑体", sans-serif;
-  overflow-y: scroll;
+  width: 100%; min-width: 0; color: #252a34; letter-spacing: 0;
 }
-
+.heading {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding-bottom: 24px; border-bottom: 1px solid #e8edf3;
+  h1 { margin: 6px 0 0; font-size: 26px; line-height: 1.3; }
+}
+.eyebrow { color: #8590a3; font-size: 12px; }
+.sandbox { color: #9d660a; background: #fff5dc; padding: 6px 10px; border-radius: 4px; font-size: 12px; }
+.channels { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 24px 0; }
+.products { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .product {
-  width: 250px;
-  border-radius: 10px;
-  position: relative;
-  margin: 20px auto 0;
-  display: block;
-  flex-wrap: wrap;
-  background-color: #f8f8f8;
+  border: 1px solid #e2e7ef; border-radius: 8px; padding: 24px; min-width: 0; display: flex; flex-direction: column;
+  h2 { font-size: 17px; margin: 18px 0; overflow-wrap: anywhere; }
+  p { color: #7a8495; font-size: 13px; line-height: 1.7; min-height: 66px; margin: 20px 0; }
 }
-
-.product-name {
-  justify-content: center;
-  font-weight: bold;
-  font-size: 16px;
-  margin: 30px auto 0;
+.productIcon { color: #2576ec; font-size: 26px; align-self: flex-start; }
+.quota { font-size: 34px; font-weight: 650; line-height: 1.3; span { font-size: 13px; font-weight: 400; color: #7a8495; margin-left: 8px; } }
+.price { color: #cf6f0d; font-size: 23px; font-weight: 600; margin: auto 0 18px; }
+.notice { margin-bottom: 20px; }
+.loading { min-height: 220px; display: grid; place-items: center; }
+.pending { margin-top: 24px; max-width: 100%; white-space: normal; height: auto; }
+.checkout {
   text-align: center;
+  h2 { font-size: 18px; margin: 20px 0 12px; }
+  dl { display: grid; grid-template-columns: 90px minmax(0, 1fr); text-align: left; gap: 14px; margin: 24px 0; padding: 20px 0; border-block: 1px solid #edf0f5; }
+  dt { color: #7a8495; } dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+  button, a { margin-top: 12px; }
 }
-
-.product-token {
-  justify-content: center;
-  font-weight: bold;
-  font-size: 30px;
-  text-align: center;
-  color: #020202;
-  margin: 25px auto 0;
-}
-
-.product-token-subscript {
-  font-size: 16px;
-  color: #000000;
-  font-weight: bold;
-}
-
-.product-desc {
-  margin: 0 auto 10px;
-  width: 220px;
-  font-size: 12px;
-  text-align: center;
-}
-
-.product-price {
-  width: 250px;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 18px;
-  text-align: center;
-  color: #020202;
-  margin: 20px auto 0;
-}
-
-.product-buy {
-  margin: 20px auto;
-  width: 180px;
-  font-size: 18px;
-  background-color: #018d01;
-  color: #ffffff;
-  border-radius: 4px;
-  text-align: center;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  cursor: pointer;
-}
-
-.product-pay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: var(--window-width);
-  height: var(--full-height);
-  background-color: rgba(255, 255, 255, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: nowrap;
-}
-
-.product-pay-weixin {
-  position: fixed;
-  margin-top: -210px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #f5f5f5;
-}
-
-.product-pay-close {
-  position: fixed;
-  margin-top: 200px;
-  background-color: #3b2300;
-  color: #f6f6f6;
-  border-radius: 50px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.product-pay-url {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #0ba800;
-  width: 250px;
-  height: 300px;
-  border-radius: 20px;
-}
-
-.product-pay-prompt {
-  position: fixed;
-  margin-top: 260px;
-  color: #2a2a2a;
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 12px;
-}
-
-.QRCode {
-  transform: scale(4); /* 放大QRCode的尺寸 */
+.checkoutAmount { font-size: 32px; font-weight: 650; }
+.success { color: #2a9d65; font-size: 42px; margin-top: 16px; }
+.hint { font-size: 12px; color: #8b94a5; margin-top: 18px; }
+@media (max-width: 1050px) { .products { gap: 12px; } .product { padding: 18px; } }
+@media (max-width: 760px) {
+  .heading { align-items: flex-start; flex-direction: column; }
+  .channels { align-items: flex-start; }
+  .products { grid-template-columns: 1fr; }
+  .product p { min-height: 0; }
+  .channels :global(.ant-radio-button-wrapper) { padding-inline: 9px; font-size: 12px; }
 }

@@ -81,9 +81,16 @@ export const createPayOrder = (productId: number) => {
             ...getHeaders(),
             "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
         },
-        body: `productId=${productId}`
+        body: new URLSearchParams({productId: String(productId), channel: 'ALIPAY_SANDBOX'}),
+        cache: "no-store",
+        signal: AbortSignal.timeout(15000),
     });
 }
+
+export const queryPayOrder = (orderId: string) => fetch(
+    `${openAIApiHostUrl}/api/v1/sale/query_pay_order?orderId=${encodeURIComponent(orderId)}`,
+    {method: "GET", headers: getHeaders(), cache: "no-store", signal: AbortSignal.timeout(15000)},
+);
 
 export const queryAccountQuota = () => {
     return fetch(`${openAIApiHostUrl}/api/v1/account/query_account_quota`, {
@@ -91,7 +98,9 @@ export const queryAccountQuota = () => {
         headers: {
             ...getHeaders(),
             "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
-        }
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(15000),
     });
 }
 
