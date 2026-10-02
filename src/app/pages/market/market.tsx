@@ -103,12 +103,12 @@ export function Market() {
         {holder}
         {calendarOpen && <SignCalendar refresh={refresh} onClose={() => setCalendarOpen(false)}/>}
         <header className={styles.heading}>
-            <div><p>福利中心</p><h1>幸运抽奖</h1></div>
+            <div><h1>幸运抽奖</h1><p>每一天，都有新惊喜。</p></div>
             <Button type="text" onClick={() => setRules(true)}>活动规则</Button>
         </header>
         <div className={styles.accountBand}>
             <div><WalletOutlined/><span>我的积分<strong>{credit ?? "—"}</strong></span></div>
-            <div><GiftOutlined/><span>今日剩余次数<strong>{draws ?? "—"}</strong></span></div>
+            <div><GiftOutlined/><span>今日抽奖机会<strong>{draws ?? "—"}<small> 次</small></strong></span></div>
             <div><MessageOutlined/><span>对话余额<strong>{balance === null ? "—" : formatBalance(balance)}</strong></span></div>
             <Tooltip title="刷新账户"><Button type="text" icon={<ReloadOutlined spin={loading}/>} aria-label="刷新账户" onClick={reload} disabled={loading}/></Tooltip>
         </div>
@@ -120,9 +120,9 @@ export function Market() {
             </section>
             <aside className={styles.activityAside}>
                 <section className={styles.signSection}>
-                    <div className={styles.sectionTitle}><h2>每日签到</h2><Button type="text" size="small" className={styles.calendarButton} icon={<CalendarOutlined/>} onClick={() => setCalendarOpen(true)}>查看日历</Button></div>
+                    <div className={styles.sectionTitle}><h2>每日签到</h2><Tooltip title="签到日历"><Button type="text" size="small" className={styles.calendarButton} aria-label="查看签到日历" icon={<CalendarOutlined/>} onClick={() => setCalendarOpen(true)}/></Tooltip></div>
                     <p className={styles.date}>{new Date().toLocaleDateString("zh-CN", {timeZone: "Asia/Shanghai", month: "long", day: "numeric", weekday: "long"})}</p>
-                    <div className={styles.signStatus}><span className={styles.signIcon}><CalendarOutlined/></span><div><strong>{signed ? "今天也有新收获" : "新一天，来签到"}</strong><p>{username}</p></div></div>
+                    <div className={styles.signStatus}><span className={`${styles.signIcon} ${signed ? styles.signedIcon : ""}`}>{signed ? <CheckCircleFilled/> : <CalendarOutlined/>}</span><div><strong>{signed ? "今日签到已完成" : "新一天，来签到"}</strong><p>{username}</p></div></div>
                     <Button type={signed ? "default" : "primary"} block disabled={signed || Boolean(busy)} loading={busy === "sign"} onClick={signIn} icon={signed ? <CheckCircleFilled/> : undefined}>{signed ? "今日已签到" : "立即签到"}</Button>
                 </section>
                 {activityId > 0 && <AwardFeedPanel key={activityId} activityId={activityId} refresh={refresh}/>}

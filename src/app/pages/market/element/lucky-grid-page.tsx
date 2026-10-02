@@ -11,7 +11,7 @@ import styles from "./lucky-grid.module.scss";
 
 const positions = [[0,0],[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1]];
 const images = ["00","01","02","12","22","21","20","10"];
-const blocks = [{padding: "12px", background: "#ffc968", borderRadius: 8}];
+const blocks = [{padding: "8px", background: "#e5e7eb", borderRadius: 8}];
 interface Props {activityId: number; refresh: number; onWin: (title: string) => void;}
 
 export function LuckyGridPage({activityId, refresh, onWin}: Props) {
@@ -86,22 +86,22 @@ export function LuckyGridPage({activityId, refresh, onWin}: Props) {
 
     const prizes = useMemo(() => awards.flatMap((award, index) => award.isAwardUnlock === false ? [] : [{
         x: positions[index][0], y: positions[index][1],
-        background: "#fffdf7",
+        background: "#ffffff",
         borderRadius: 5,
-        imgs: [{src: "/raffle-award-" + images[index] + ".png", width: "60%", height: "60%", top: "5%"}],
+        imgs: [{src: "/raffle-award-" + images[index] + ".png", width: "48%", height: "48%", top: "12%"}],
         fonts: [{text: award.awardTitle,
-            top: "76%", fontSize: size < 340 ? "10px" : "12px", fontColor: "#694519", lengthLimit: "95%"}],
+            top: "74%", fontSize: size < 340 ? "10px" : "12px", fontColor: "#1d1d1f", lengthLimit: "95%"}],
     }]), [awards, size]);
-    const buttons = useMemo(() => [{x: 1, y: 1, background: "#2878ff", borderRadius: 5,
+    const buttons = useMemo(() => [{x: 1, y: 1, background: "#0071e3", borderRadius: 5,
         fonts: [{text: busy ? "抽奖中" : "幸运抽奖", top: "35%", fontColor: "#fff", fontSize: size < 340 ? "14px" : "18px"}]}], [busy, size]);
 
     return <div ref={wrapper} className={styles.wrapper}>
         <div className={styles.board} style={{width: size, height: size}} aria-label="抽奖奖品展示">
             {awards.length === 8 ? <LuckyGrid ref={lucky} width={size + "px"} height={size + "px"} rows={3} cols={3}
                 prizes={prizes} blocks={blocks}
-                defaultConfig={{gutter: 7}}
-                defaultStyle={{background: "#fffdf7", borderRadius: 5}}
-                activeStyle={{background: "#ffe69f", shadow: "0 0 10 #ffbd4a"}}
+                defaultConfig={{gutter: 6}}
+                defaultStyle={{background: "#ffffff", borderRadius: 5}}
+                activeStyle={{background: "#e4f0ff", shadow: "0 0 8 #0071e3"}}
                 buttons={buttons}
                 onStart={start} onEnd={() => {
                     setBusy(false); locked.current = false;

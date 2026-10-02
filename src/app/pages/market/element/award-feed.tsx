@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
-import {Alert, Button, Pagination, Spin} from "antd";
-import {GiftOutlined, SoundOutlined, TrophyOutlined, ReloadOutlined} from "@ant-design/icons";
+import {Alert, Button, Pagination, Segmented, Spin, Tooltip} from "antd";
+import {GiftOutlined, PauseOutlined, PlayCircleOutlined, SoundOutlined, TrophyOutlined, ReloadOutlined} from "@ant-design/icons";
 import {queryAwardFeed, queryRaffleAwardList} from "@/apis";
 import {AwardFeed, AwardFeedItem} from "@/types/AwardFeed";
 import {RaffleAwardVO} from "@/types/RaffleAwardVO";
@@ -24,7 +24,6 @@ function AwardBroadcastTicker({items}: {items: AwardFeedItem[]}) {
     const [paused, setPaused] = useState(false);
     const scrolling = items.length > 4;
     const renderRows = () => items.map(item => <li key={item.recordId}>
-        <span aria-hidden="true">🎉</span>
         <p title={`恭喜 ${item.winnerName} 抽中 ${item.awardTitle}`}>
             恭喜 <strong>{item.winnerName}</strong> 抽中 {item.awardTitle}
         </p>
@@ -32,9 +31,11 @@ function AwardBroadcastTicker({items}: {items: AwardFeedItem[]}) {
     </li>);
 
     return <section className={styles.broadcasts} aria-label="中奖播报">
-        <div className={styles.heading}><h2><SoundOutlined/>中奖播报</h2>
-            {scrolling ? <Button type="text" size="small" aria-label={paused ? "继续滚动播报" : "暂停滚动播报"}
-                aria-pressed={paused} onClick={() => setPaused(value => !value)}>{paused ? "继续滚动" : "暂停滚动"}</Button> : <span>最新动态</span>}
+        <div className={styles.broadcastHeading}>
+            <span className={styles.broadcastLabel}><SoundOutlined/>实时动态</span>
+            {scrolling ? <Tooltip title={paused ? "继续滚动播报" : "暂停滚动播报"}><Button type="text" size="small" aria-label={paused ? "继续滚动播报" : "暂停滚动播报"}
+                aria-pressed={paused} onClick={() => setPaused(value => !value)} icon={paused ? <PlayCircleOutlined/> : <PauseOutlined/>}/></Tooltip>
+                : <span className={styles.broadcastMeta}>最新动态</span>}
         </div>
         {items.length === 0 ? <p className={styles.broadcastEmpty}>暂无中奖动态</p> :
             <div className={`${styles.ticker} ${paused ? styles.tickerPaused : ""}`} tabIndex={0}
@@ -49,12 +50,14 @@ function AwardBroadcastTicker({items}: {items: AwardFeedItem[]}) {
 }
 
 export function AwardFeedPanel({activityId, refresh}: {activityId: number; refresh: number}) {
+    type FeedView = "winners" | "broadcast";
     const [page, setPage] = useState(1);
     const [retry, setRetry] = useState(0);
     const [data, setData] = useState<AwardFeed | null>(null);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [images, setImages] = useState<Record<number, string>>({});
+    const [view, setView] = useState<FeedView>("winners");
 
     useEffect(() => {
         let active = true;
@@ -117,28 +120,32 @@ export function AwardFeedPanel({activityId, refresh}: {activityId: number; refre
     }
 
     return <div className={styles.feed}>
-        <section aria-label="围观大奖">
+        <section aria-label="中奖动态">
             <div className={styles.heading}>
                 <h2><TrophyOutlined/>围观大奖</h2>
                 <Button type="text" size="small" aria-label="刷新中奖记录" icon={<ReloadOutlined spin={loading}/>} disabled={loading} onClick={() => setRetry(value => value + 1)}/>
             </div>
+            <Segmented className={styles.viewSwitch} block size="small" value={view}
+                options={[{label: "中奖记录", value: "winners"}, {label: "实时播报", value: "broadcast"}]}
+                onChange={value => setView(value as FeedView)} aria-label="中奖动态视图"/>
             {error && <Alert className={styles.error} type="warning" showIcon message={data ? "更新失败，当前显示上次记录" : error} action={<Button size="small" onClick={() => setRetry(value => value + 1)}>重试</Button>}/>}
-            {!currentData ? <div className={styles.placeholder}>{loading ? <Spin/> : "中奖记录暂不可用"}</div> : currentData.records.length === 0 ?
-                <div className={styles.empty}><GiftOutlined/><p>暂无中奖记录</p><span>本活动产生中奖后会展示在这里</span></div> : <>
-                    <ul className={styles.winners} aria-label="中奖用户列表" aria-busy={loading}>
-                        {currentData.records.map(item => <li key={item.recordId}>
-                            {awardImage(item)}
-                            <div className={styles.winner}><p>恭喜 <strong>{item.winnerName}</strong></p><span title={item.awardTitle}>抽中 <b>{item.awardTitle}</b></span></div>
-                            <time dateTime={item.awardTime} title={new Date(item.awardTime).toLocaleString("zh-CN", {timeZone: "Asia/Shanghai"})}>{awardDate(item.awardTime)}</time>
-                        </li>)}
-                    </ul>
-                    <nav className={styles.pagination} aria-label="中奖记录分页"><Pagination size="small" current={page} pageSize={pageSize} total={currentData.total} showSizeChanger={false} showLessItems onChange={setPage}/></nav>
-                    <p className={styles.caption}>本活动最近 {currentData.total} 条中奖记录</p>
-                </>}
+            {view === "winners" ? <>
+                {!currentData ? <div className={styles.placeholder}>{loading ? <Spin/> : "中奖记录暂不可用"}</div> : currentData.records.length === 0 ?
+                    <div className={styles.empty}><GiftOutlined/><p>暂无中奖记录</p><span>本活动产生中奖后会展示在这里</span></div> : <>
+                        <ul className={styles.winners} aria-label="中奖用户列表" aria-busy={loading}>
+                            {currentData.records.map(item => <li key={item.recordId}>
+                                {awardImage(item)}
+                                <div className={styles.winner}><p>恭喜 <strong>{item.winnerName}</strong></p><span title={item.awardTitle}>抽中 <b>{item.awardTitle}</b></span></div>
+                                <time dateTime={item.awardTime} title={new Date(item.awardTime).toLocaleString("zh-CN", {timeZone: "Asia/Shanghai"})}>{awardDate(item.awardTime)}</time>
+                            </li>)}
+                        </ul>
+                        <nav className={styles.pagination} aria-label="中奖记录分页"><Pagination size="small" current={page} pageSize={pageSize} total={currentData.total} showSizeChanger={false} showLessItems onChange={setPage}/></nav>
+                        <p className={styles.caption}>本活动最近 {currentData.total} 条中奖记录</p>
+                    </>}
+            </> : data ? <AwardBroadcastTicker items={data.broadcasts}/> : <section className={styles.broadcasts} aria-label="中奖播报">
+                <div className={styles.broadcastHeading}><span className={styles.broadcastLabel}><SoundOutlined/>实时动态</span></div>
+                <div className={styles.broadcastEmpty}>{loading ? "正在加载中奖动态…" : "中奖动态暂不可用"}</div>
+            </section>}
         </section>
-        {data ? <AwardBroadcastTicker items={data.broadcasts}/> : <section className={styles.broadcasts} aria-label="中奖播报">
-            <div className={styles.heading}><h2><SoundOutlined/>中奖播报</h2></div>
-            <div className={styles.broadcastEmpty}>{loading ? "正在加载中奖动态…" : "中奖动态暂不可用"}</div>
-        </section>}
     </div>;
 }
