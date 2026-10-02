@@ -2,8 +2,9 @@ export interface SaleProduct {
     productId: number,
     productName: string,
     productDesc: string,
-    quota: number,
-    price: number
+    creditAmount: string | number,
+    price: string | number,
+    quota?: number | null,
 }
 
 export enum SaleProductEnum {

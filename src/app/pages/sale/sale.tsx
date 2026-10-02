@@ -1,5 +1,6 @@
 import styles from './sale.module.scss';
-import {createPayOrder, queryAccountQuota, queryPayOrder, queryProductList} from "@/apis";
+import {createPayOrder, queryPayOrder, queryProductList} from "@/apis";
+import {AccountBalance, formatBalance, queryAccountBalance} from "@/apis/account-balance";
 import {useEffect, useRef, useState} from "react";
 import {SaleProduct, SaleProductEnum} from "@/types/sale_product";
 import {useAccessStore} from "@/app/store/access";
@@ -11,7 +12,8 @@ type PaymentStatus = 'CREATE' | 'WAIT' | 'COMPLETED' | 'CLOSE';
 
 type Payment = {
     orderId: string; status: PaymentStatus;
-    payUrl?: string; amount: number; quota: number; productName: string; expiresAt: number;
+    payUrl?: string; amount: number; creditAmount: string | null; quota: number | null;
+    productName: string; expiresAt: number;
 };
 
 type ApiResult<T> = {code?: string; info?: string; data?: T};
@@ -25,6 +27,19 @@ function isPaymentStatus(value: unknown): value is PaymentStatus {
     return typeof value === 'string' && paymentStatuses.includes(value as PaymentStatus);
 }
 
+function parseMoney(value: unknown): string | null {
+    if (typeof value === 'number') {
+        return Number.isFinite(value) && value >= 0 ? String(value) : null;
+    }
+    if (typeof value !== 'string') return null;
+    const normalized = value.trim();
+    return /^\d+(\.\d{1,8})?$/.test(normalized) ? normalized : null;
+}
+
+function formatCny(value: string | number | null): string {
+    return value === null ? '—' : formatBalance(String(value));
+}
+
 function parsePayment(value: unknown): Payment | null {
     if (!value || typeof value !== 'object') return null;
     const candidate = value as Record<string, unknown>;
@@ -32,14 +47,22 @@ function parsePayment(value: unknown): Payment | null {
     const status = candidate.status;
     const productName = candidate.productName;
     const amount = Number(candidate.amount);
-    const quota = Number(candidate.quota);
+    const rawCreditAmount = candidate.creditAmount;
+    const creditAmount = rawCreditAmount === null || rawCreditAmount === undefined
+        ? null
+        : parseMoney(rawCreditAmount);
+    const rawQuota = candidate.quota;
+    const quota = rawQuota === null || rawQuota === undefined || rawQuota === '' ? null : Number(rawQuota);
     const expiresAt = Number(candidate.expiresAt);
     if (typeof orderId !== 'string' || !orderId || !isPaymentStatus(status) ||
         typeof productName !== 'string' || !productName ||
-        !Number.isFinite(amount) || !Number.isFinite(quota) || !Number.isFinite(expiresAt)) return null;
+        !Number.isFinite(amount) ||
+        (creditAmount === null && rawCreditAmount !== null && rawCreditAmount !== undefined) ||
+        (quota !== null && !Number.isFinite(quota)) || (creditAmount === null && quota === null) ||
+        !Number.isFinite(expiresAt)) return null;
     const payUrl = typeof candidate.payUrl === 'string' && candidate.payUrl.trim() ? candidate.payUrl : undefined;
     return {
-        orderId, status, amount, quota, productName, expiresAt,
+        orderId, status, amount, creditAmount, quota, productName, expiresAt,
         ...(payUrl ? {payUrl} : {}),
     };
 }
@@ -135,10 +158,11 @@ export function Sale() {
     const [checking, setChecking] = useState(false);
     const [checkError, setCheckError] = useState('');
     const [checkoutError, setCheckoutError] = useState('');
-    const [quota, setQuota] = useState<number | null>(null);
-    const [quotaRefreshing, setQuotaRefreshing] = useState(false);
+    const [walletBalance, setWalletBalance] = useState<string | null>(null);
+    const [legacyQuota, setLegacyQuota] = useState<number | null>(null);
+    const [balanceRefreshing, setBalanceRefreshing] = useState(false);
     const pollBusy = useRef(false);
-    const quotaRefreshOrder = useRef<string | null>(null);
+    const balanceRequestBusy = useRef(false);
     const recoveryAttemptedOrder = useRef<string | null>(null);
     const dismissedOrder = useRef<string | null>(null);
     const location = useLocation();
@@ -157,22 +181,31 @@ export function Sale() {
         finally { setLoading(false); }
     };
 
-    const refreshQuota = async (orderId: string) => {
-        if (quotaRefreshOrder.current === orderId) return;
-        quotaRefreshOrder.current = orderId;
-        setQuotaRefreshing(true);
+    const refreshBalance = async () => {
+        if (balanceRequestBusy.current) return;
+        balanceRequestBusy.current = true;
+        setBalanceRefreshing(true);
         try {
-            const result = await readApiResult<{surplusQuota: number}>(queryAccountQuota(), '额度刷新失败');
-            if (result.code === SaleProductEnum.NeedLogin) { useAccessStore.getState().goToLogin(); return; }
-            if (result.code !== SaleProductEnum.SUCCESS) throw new Error(result.info || '额度刷新失败');
-            const surplusQuota = Number(result.data?.surplusQuota);
-            if (!Number.isFinite(surplusQuota)) throw new Error('额度数据格式无效');
-            setQuota(surplusQuota);
-        } catch (error) {
-            quotaRefreshOrder.current = null;
-            throw error;
+            const result = await readApiResult<AccountBalance>(queryAccountBalance(), '余额刷新失败');
+            if (result.code === SaleProductEnum.NeedLogin) {
+                useAccessStore.getState().goToLogin();
+                return;
+            }
+            if (result.code !== SaleProductEnum.SUCCESS) throw new Error(result.info || '余额刷新失败');
+            const availableAmount = result.data?.availableAmount;
+            if (typeof availableAmount !== 'string' || formatCny(availableAmount) === '—') {
+                throw new Error('余额数据格式无效');
+            }
+            const returnedLegacyQuota = result.data?.legacyQuota;
+            if (returnedLegacyQuota !== undefined && returnedLegacyQuota !== null &&
+                (!Number.isInteger(returnedLegacyQuota) || returnedLegacyQuota < 0)) {
+                throw new Error('历史额度数据格式无效');
+            }
+            setWalletBalance(availableAmount);
+            setLegacyQuota(returnedLegacyQuota ?? null);
         } finally {
-            setQuotaRefreshing(false);
+            balanceRequestBusy.current = false;
+            setBalanceRefreshing(false);
         }
     };
 
@@ -196,7 +229,7 @@ export function Sale() {
             } else {
                 persistPendingPayment(recovered);
             }
-            if (snapshot.status === 'COMPLETED') await refreshQuota(orderId);
+            if (snapshot.status === 'COMPLETED') await refreshBalance();
         } catch (e) {
             const message = e instanceof Error ? e.message : '网络异常，请稍后确认，不要重复付款';
             setError(message);
@@ -220,7 +253,7 @@ export function Sale() {
                 clearCompletedPayment(id);
             }
             if (snapshot.status === 'COMPLETED') {
-                await refreshQuota(id);
+                await refreshBalance();
             }
         } catch (e) { setCheckError(e instanceof Error ? e.message : '网络异常，请稍后确认，不要重复付款'); }
         finally { pollBusy.current = false; setChecking(false); }
@@ -237,8 +270,6 @@ export function Sale() {
             const createdPayment = parsePayment(result.data);
             if (!createdPayment) throw new Error('下单响应格式无效，请稍后重试');
             setPayment(createdPayment);
-            quotaRefreshOrder.current = null;
-            setQuota(null);
             const saved = persistPendingPayment(createdPayment);
             setCheckoutError('');
             if (createdPayment.payUrl && saved) setCheckError('');
@@ -251,6 +282,7 @@ export function Sale() {
 
     useEffect(() => {
         void loadProducts();
+        void refreshBalance().catch(e => setError(e instanceof Error ? e.message : '余额加载失败'));
         try {
             if (localStorage.getItem(pendingPaymentKey)) {
                 const storedPayment = readPendingPayment();
@@ -288,7 +320,7 @@ export function Sale() {
 
     useEffect(() => {
         if (payment?.status !== 'COMPLETED') return;
-        void refreshQuota(payment.orderId).catch(e => setCheckError(e instanceof Error ? e.message : '额度刷新失败'));
+        void refreshBalance().catch(e => setCheckError(e instanceof Error ? e.message : '余额刷新失败'));
     }, [payment?.orderId, payment?.status]);
 
     const complete = payment?.status === 'COMPLETED';
@@ -308,7 +340,7 @@ export function Sale() {
 
     return <section className={styles.sale}>
         <header className={styles.heading}>
-            <div><span className={styles.eyebrow}>个人中心</span><h1>额度商城</h1></div>
+            <div><span className={styles.eyebrow}>个人中心</span><h1>余额充值</h1></div>
             <span className={styles.sandbox}>沙箱测试 · 不涉及真实扣款</span>
         </header>
         <div className={styles.channels}>
@@ -319,38 +351,47 @@ export function Sale() {
             <Button type="text" icon={<ReloadOutlined />} title="刷新套餐" aria-label="刷新套餐" onClick={loadProducts}/>
         </div>
         {error && <Alert type="error" showIcon message={error} className={styles.notice}/>}
+        <div className={styles.balanceSummary} aria-label="账户余额">
+            <div><span>钱包余额</span><strong>{walletBalance === null ? '—' : formatCny(walletBalance)}</strong></div>
+            <div><span>历史剩余额度</span><strong>{legacyQuota === null ? '—' : `${legacyQuota} 次`}</strong></div>
+            <Button type="text" icon={<ReloadOutlined spin={balanceRefreshing}/>} title="刷新余额" aria-label="刷新余额"
+                    onClick={() => void refreshBalance().catch(e => setError(e instanceof Error ? e.message : '余额加载失败'))}
+                    disabled={balanceRefreshing}/>
+        </div>
         {loading ? <div className={styles.loading}><Spin/></div> :
             products.length === 0 ? <Empty description="暂无可购买套餐"/> :
                 <div className={styles.products}>{products.map(product =>
                     <article key={product.productId} className={styles.product}>
                         <CreditCardOutlined className={styles.productIcon}/>
                         <h2>{product.productName}</h2>
-                        <div className={styles.quota}>{product.quota}<span>次对话</span></div>
+                        <div className={styles.creditAmount}>到账余额 <strong>{formatCny(product.creditAmount)}</strong></div>
                         <p>{product.productDesc}</p>
-                        <div className={styles.price}>¥ {Number(product.price).toFixed(2)}</div>
+                        <div className={styles.price}>支付 {formatCny(product.price)}</div>
                         <Button type="primary" block icon={<AlipayCircleOutlined/>}
                                 loading={busy === product.productId} disabled={busy !== null && busy !== product.productId}
-                                onClick={() => payOrder(product.productId)}>购买额度</Button>
+                                onClick={() => payOrder(product.productId)}>支付 {formatCny(product.price)}</Button>
                     </article>
                 )}</div>}
         {payment && !showModal && !complete && !closed &&
             <Button className={styles.pending} onClick={() => setShowModal(true)}>查看待支付订单 {payment.orderId}</Button>}
-        <Modal title={complete ? '额度已到账' : closed ? '订单已关闭' : '支付宝沙箱支付'}
+        <Modal title={complete ? '余额已到账' : closed ? '订单已关闭' : '支付宝沙箱支付'}
                open={showModal} onCancel={dismissPayment} footer={null} width={460}>
             {payment && <div className={styles.checkout}>
                 {complete && <CheckCircleFilled className={styles.success}/>}
                 <h2>{payment.productName}</h2>
-                <div className={styles.checkoutAmount}>¥ {Number(payment.amount).toFixed(2)}</div>
-                <dl><dt>订单编号</dt><dd>{payment.orderId}</dd><dt>对话额度</dt><dd>{payment.quota} 次</dd>
-                    {complete && <><dt>当前额度</dt><dd>{quota === null ? '刷新中…' : `${quota} 次`}</dd></>}
+                <div className={styles.checkoutAmount}>支付 {formatCny(payment.amount)}</div>
+                <dl><dt>订单编号</dt><dd>{payment.orderId}</dd>
+                    <dt>{payment.creditAmount === null ? '历史对话额度' : '到账余额'}</dt>
+                    <dd>{payment.creditAmount === null ? `${payment.quota} 次` : formatCny(payment.creditAmount)}</dd>
+                    {complete && <><dt>钱包余额</dt><dd>{walletBalance === null ? '刷新中…' : formatCny(walletBalance)}</dd></>}
                     <dt>当前状态</dt><dd>{complete ? '已支付 · 已到账' : closed ? '已关闭' : payment.status === 'WAIT' ? '已支付 · 到账处理中' : '等待付款'}</dd></dl>
                 {checkError && <Alert showIcon type="warning" message={checkError}/>}
                 {checkoutError && <Alert showIcon type="warning" message={checkoutError}/>}
                 {complete ? <>
                     <Button type="primary" block onClick={() => { dismissPayment(); navigate('/chat'); }}>开始对话</Button>
                     <Button block onClick={dismissPayment}>返回商城</Button>
-                    {quota === null && <Button block icon={<ReloadOutlined/>} loading={quotaRefreshing}
-                                               onClick={() => void refreshQuota(payment.orderId).catch(e => setCheckError(e instanceof Error ? e.message : '额度刷新失败'))}>刷新额度</Button>}
+                    {walletBalance === null && <Button block icon={<ReloadOutlined/>} loading={balanceRefreshing}
+                                                       onClick={() => void refreshBalance().catch(e => setCheckError(e instanceof Error ? e.message : '余额刷新失败'))}>刷新余额</Button>}
                 </> :
                     closed ? <Button block onClick={dismissPayment}>返回商城</Button> : <>
                         {expired ? <Alert type="info" message="订单已过支付期限，正在确认最终状态"/> :

@@ -4,6 +4,8 @@ export interface AccountBalance {
     currency: "CNY";
     availableAmount: string;
     totalAmount: string;
+    legacyQuota?: number;
+    billingMode?: "TOKEN";
 }
 
 export function queryAccountBalance() {
