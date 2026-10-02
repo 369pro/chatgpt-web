@@ -20,6 +20,34 @@ function awardDate(value: string, withTime = false) {
     });
 }
 
+function AwardBroadcastTicker({items}: {items: AwardFeedItem[]}) {
+    const [paused, setPaused] = useState(false);
+    const scrolling = items.length > 4;
+    const renderRows = () => items.map(item => <li key={item.recordId}>
+        <span aria-hidden="true">🎉</span>
+        <p title={`恭喜 ${item.winnerName} 抽中 ${item.awardTitle}`}>
+            恭喜 <strong>{item.winnerName}</strong> 抽中 {item.awardTitle}
+        </p>
+        <time dateTime={item.awardTime} title={new Date(item.awardTime).toLocaleString("zh-CN", {timeZone: "Asia/Shanghai"})}>{awardDate(item.awardTime)}</time>
+    </li>);
+
+    return <section className={styles.broadcasts} aria-label="中奖播报">
+        <div className={styles.heading}><h2><SoundOutlined/>中奖播报</h2>
+            {scrolling ? <Button type="text" size="small" aria-label={paused ? "继续滚动播报" : "暂停滚动播报"}
+                aria-pressed={paused} onClick={() => setPaused(value => !value)}>{paused ? "继续滚动" : "暂停滚动"}</Button> : <span>最新动态</span>}
+        </div>
+        {items.length === 0 ? <p className={styles.broadcastEmpty}>暂无中奖动态</p> :
+            <div className={`${styles.ticker} ${paused ? styles.tickerPaused : ""}`} tabIndex={0}
+                aria-label="最新中奖动态，悬停或聚焦可暂停滚动">
+                <div key={items.map(item => item.recordId).join(",")} className={`${styles.tickerTrack} ${scrolling ? styles.tickerScrolling : ""}`}
+                    style={{animationDuration: `${items.length * 3}s`}}>
+                    <ul aria-label="最新中奖动态">{renderRows()}</ul>
+                    {scrolling && <ul className={styles.tickerDuplicate} aria-hidden="true">{renderRows()}</ul>}
+                </div>
+            </div>}
+    </section>;
+}
+
 export function AwardFeedPanel({activityId, refresh}: {activityId: number; refresh: number}) {
     const [page, setPage] = useState(1);
     const [retry, setRetry] = useState(0);
@@ -108,16 +136,9 @@ export function AwardFeedPanel({activityId, refresh}: {activityId: number; refre
                     <p className={styles.caption}>本活动最近 {currentData.total} 条中奖记录</p>
                 </>}
         </section>
-        <section className={styles.broadcasts} aria-label="中奖播报">
-            <div className={styles.heading}><h2><SoundOutlined/>中奖播报</h2><span>最新动态</span></div>
-            {!data ? <div className={styles.broadcastEmpty}>{loading ? "正在加载中奖动态…" : "中奖动态暂不可用"}</div> : data.broadcasts.length === 0 ?
-                <p className={styles.broadcastEmpty}>暂无中奖动态</p> : <ul className={styles.ticker} aria-label="最新中奖动态" tabIndex={0}>
-                    {data.broadcasts.map(item => <li key={item.recordId}>
-                        <GiftOutlined/>
-                        <div><span>恭喜 <strong>{item.winnerName}</strong></span><p title={item.awardTitle}>抽中 {item.awardTitle}</p></div>
-                        <time dateTime={item.awardTime} title={new Date(item.awardTime).toLocaleString("zh-CN", {timeZone: "Asia/Shanghai"})}>{awardDate(item.awardTime, true)}</time>
-                    </li>)}
-                </ul>}
-        </section>
+        {data ? <AwardBroadcastTicker items={data.broadcasts}/> : <section className={styles.broadcasts} aria-label="中奖播报">
+            <div className={styles.heading}><h2><SoundOutlined/>中奖播报</h2></div>
+            <div className={styles.broadcastEmpty}>{loading ? "正在加载中奖动态…" : "中奖动态暂不可用"}</div>
+        </section>}
     </div>;
 }
