@@ -42,8 +42,14 @@ export function Market() {
         setError("");
         (async () => {
             const id = await readMarketResult<number>(queryStageActivityId());
-            if (!id) throw new Error("当前暂无上架活动");
             if (!active) return;
+            if (!id) {
+                setActivityId(0);
+                setProducts([]);
+                setDraws(null);
+                exchangeRequest.current = undefined;
+                throw new Error("当前暂无上架活动");
+            }
             setActivityId(id);
             const failures: string[] = [];
             async function load<T>(label: string, request: Promise<T>, update: (value: T) => void) {
@@ -109,7 +115,7 @@ export function Market() {
         {error && <Alert className={styles.error} type="warning" showIcon message={error} action={<Button size="small" onClick={reload}>重试</Button>}/>}
         <div className={styles.activity}>
             <section className={styles.drawSection} aria-label="幸运抽奖盘">
-                <div className={styles.sectionTitle}><h2><GiftOutlined/>幸运九宫格</h2><span>{activityId ? "活动 " + activityId : "加载中"}</span></div>
+                <div className={styles.sectionTitle}><h2><GiftOutlined/>幸运九宫格</h2><span>{activityId ? "活动 " + activityId : loading ? "加载中" : "暂无活动"}</span></div>
                 {activityId ? <LuckyGridPage activityId={activityId} refresh={refresh} onWin={refreshAfterReward}/> : <div className={styles.boardPlaceholder}>{loading ? <Spin/> : "暂无可参与的活动"}</div>}
             </section>
             <aside className={styles.activityAside}>
