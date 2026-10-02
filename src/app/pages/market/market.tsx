@@ -1,7 +1,8 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {Alert, Button, Modal, Spin, Tooltip, message} from "antd";
 import {GiftOutlined, ReloadOutlined, CalendarOutlined, CheckCircleFilled, WalletOutlined, MessageOutlined} from "@ant-design/icons";
-import {queryStageActivityId, queryUserActivityAccount, queryUserCreditAccount, queryAccountQuota, isCalendarSignRebate, calendarSignRebate, querySkuProductListByActivityId, creditPayExchangeSku} from "@/apis";
+import {queryStageActivityId, queryUserActivityAccount, queryUserCreditAccount, isCalendarSignRebate, calendarSignRebate, querySkuProductListByActivityId, creditPayExchangeSku} from "@/apis";
+import {AccountBalance, formatBalance, queryAccountBalance} from "@/apis/account-balance";
 import {useAccessStore} from "@/app/store/access";
 import {LuckyGridPage} from "./element/lucky-grid-page";
 import {SignCalendar} from "./element/sign-calendar";
@@ -19,7 +20,7 @@ export function Market() {
     const [busy, setBusy] = useState<string | number>("");
     const [credit, setCredit] = useState<number | null>(null);
     const [draws, setDraws] = useState<number | null>(null);
-    const [quota, setQuota] = useState<number | null>(null);
+    const [balance, setBalance] = useState<string | null>(null);
     const [products, setProducts] = useState<SkuProductResponseDTO[]>([]);
     const [rules, setRules] = useState(false);
     const [calendarOpen, setCalendarOpen] = useState(false);
@@ -52,7 +53,7 @@ export function Market() {
             await Promise.all([
                 load("抽奖次数", readMarketResult<{dayCountSurplus: number}>(queryUserActivityAccount(id)), value => setDraws(value.dayCountSurplus)),
                 load("积分", readMarketResult<number>(queryUserCreditAccount()), setCredit),
-                load("对话额度", readMarketResult<{surplusQuota: number}>(queryAccountQuota()), value => setQuota(value.surplusQuota)),
+                load("对话余额", readMarketResult<AccountBalance>(queryAccountBalance()), value => setBalance(value.availableAmount)),
                 load("签到状态", readMarketResult<boolean>(isCalendarSignRebate()), setSigned),
                 load("兑换商品", readMarketResult<SkuProductResponseDTO[]>(querySkuProductListByActivityId(id)), setProducts),
             ]);
@@ -102,7 +103,7 @@ export function Market() {
         <div className={styles.accountBand}>
             <div><WalletOutlined/><span>我的积分<strong>{credit ?? "—"}</strong></span></div>
             <div><GiftOutlined/><span>今日剩余次数<strong>{draws ?? "—"}</strong></span></div>
-            <div><MessageOutlined/><span>对话额度<strong>{quota ?? "—"}</strong></span></div>
+            <div><MessageOutlined/><span>对话余额<strong>{balance === null ? "—" : formatBalance(balance)}</strong></span></div>
             <Tooltip title="刷新账户"><Button type="text" icon={<ReloadOutlined spin={loading}/>} aria-label="刷新账户" onClick={reload} disabled={loading}/></Tooltip>
         </div>
         {error && <Alert className={styles.error} type="warning" showIcon message={error} action={<Button size="small" onClick={reload}>重试</Button>}/>}
