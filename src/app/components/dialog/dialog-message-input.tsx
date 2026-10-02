@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useState, type KeyboardEvent} from "react";
 import styles from './dialog-message-input.module.scss';
 import {Button, Input} from "antd";
 import {userChatStore} from "@/app/store/chat-store";
@@ -15,6 +15,12 @@ interface Props {
 export function DialogMessageInput(props: Props) {
     const {onEnter} = props;
     const chatStore = userChatStore();
+    const [sendShortcut, setSendShortcut] = useState("Ctrl+Enter");
+    useEffect(() => {
+        if (/Mac|iPhone|iPad|iPod/i.test(navigator.platform)) {
+            setSendShortcut("Command+Enter");
+        }
+    }, []);
     const [value, setValue] = useState<string>();
     const currentSession = chatStore.currentSession();
 
@@ -25,8 +31,10 @@ export function DialogMessageInput(props: Props) {
         setValue(undefined);
     }
 
-    const handleKeyDown = (e: any) => {
-        if (e.ctrlKey && e.key === "Enter") {
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229 || e.repeat) return;
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
             onSend(value);
         }
     }
@@ -42,7 +50,7 @@ export function DialogMessageInput(props: Props) {
                 autoFocus
                 onKeyDown={handleKeyDown}/>
             <Button disabled={!value?.length} type="primary" className={styles.btn}
-                    onClick={() => onSend(value)}>发送(Ctrl+Enter)</Button>
+                    onClick={() => onSend(value)}>发送({sendShortcut})</Button>
         </div>
 
     );
