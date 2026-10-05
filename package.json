@@ -4,10 +4,10 @@
   "private": false,
   "license": "XiaoFuGe",
   "scripts": {
-    "dev": "next dev --port 3002",
+    "dev": "next dev --port 3003",
     "build": "next build",
-    "start": "next start --port 3002",
-    "lint": "next lint --port 3002"
+    "start": "next start --port 3003",
+    "lint": "next lint --port 3003"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^16.2.0",

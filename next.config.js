@@ -10,10 +10,6 @@ const nextConfig = {
         return config;
     },
     output: "standalone",
-    plugins: {
-        tailwindcss: {},
-        autoprefixer: {},
-    },
 }
 
 module.exports = nextConfig

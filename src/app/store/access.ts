@@ -1,59 +1,37 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { login } from "@/apis";
-export interface AccessControlStore {
-    accessCode: string;
-    token: string;
-    accessCodeErrorMsgs: string;
+import {create} from "zustand";
+import {persist} from "zustand/middleware";
+import {login} from "@/apis";
 
-    updateToken: (_: string) => void;
-    updateCode: (_: string) => void;
+interface AccessControlStore {
+    token: string;
+    username: string;
+    updateToken: (token: string) => void;
     isAuthorized: () => boolean;
-    login: () => Promise<string>;
+    login: (username: string, password: string, register?: boolean) => Promise<void>;
     goToLogin: () => void;
 }
 
-export const useAccessStore: any = create<AccessControlStore>()(
-    persist(
-        (set, get) => ({
-            token: "",
-            accessCode: "",
-            accessCodeErrorMsgs: "",
-            updateCode(code: string) {
-                set(() => ({ accessCode: code }));
-            },
-            updateToken(token: string) {
-                set(() => ({ token }));
-            },
-            isAuthorized() {
-                return !!get().token;
-            },
-            goToLogin() {
-                get().updateCode("");
-                get().updateToken("");
-            },
-            async login() {
-                const res = await login(get().accessCode);
-                const { data, code } = await res.json();
-                console.log("data", data);
-                // 这里需要根据返回结果设置
-                if (code === "0000") {
-                    console.log("登陆成功");
-                    get().updateToken(data);
-                    set(() => ({ accessCodeErrorMsgs: "" }));
-                }
-                if (code === "0002") {
-                    set(() => ({ accessCodeErrorMsgs: "验证码已过期,请获取最新验证码" }));
-                }
-                if (code === "0003") {
-                    set(() => ({ accessCodeErrorMsgs: "验证码不存在,请确认最新验证码" }));
-                }
-                return data;
-            },
-        }),
-        {
-            name: "chat-access",
-            version: 1,
+export const useAccessStore = create<AccessControlStore>()(persist<AccessControlStore, [], [], Pick<AccessControlStore, "token" | "username">>((set, get) => ({
+    token: "",
+    username: "",
+    updateToken: token => set({token}),
+    isAuthorized: () => Boolean(get().token),
+    goToLogin: () => set({token: "", username: ""}),
+    async login(username, password, register = false) {
+        let response: Response;
+        try { response = await login(username, password, register); }
+        catch { throw new Error("无法连接登录服务，请稍后重试"); }
+        if (!response.ok) throw new Error("登录服务暂不可用，请稍后重试");
+        const result = await response.json();
+        if (result.code !== "0000" || !result.data?.token) {
+            throw new Error(result.info || "账号或密码错误");
         }
-    )
-);
+        set({token: result.data.token, username: result.data.username});
+    },
+}), {
+    name: "chat-access",
+    version: 2,
+    // Persist merges these fields with the current store, retaining its actions.
+    migrate: () => ({token: "", username: ""} as AccessControlStore),
+    partialize: state => ({token: state.token, username: state.username}),
+}));

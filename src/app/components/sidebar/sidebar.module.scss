@@ -1,62 +1,13 @@
-.sidebar {
-  top: 0;
-  width: var(--sidebar-width);
-  height: var(--full-height);
-  position: relative;
-  background-color: #F5F5F5;
-}
-
-.sidebar-header {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  position: relative;
-  margin: 45px auto 0;
-  border: #c7c7c7 1px solid;
-}
-
-.sidebar-chat {
-  width: 30px;
-  height: 30px;
-  position: relative;
-  margin: 24px auto 0;
-}
-
-.sidebar-role {
-  width: 30px;
-  height: 30px;
-  position: relative;
-  margin: 15px auto 0;
-}
-
-.sidebar-mall {
-  width: 30px;
-  height: 30px;
-  position: relative;
-  margin: 15px auto 0;
-}
-
-.sidebar-git {
-  width: 30px;
-  height: 30px;
-  position: absolute;
-  display: block;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.action-button {
-  display: inline-flex;
-  margin-top: 3px;
-  margin-left: 5px;
-}
-
-.action-button svg {
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-}
-
-.action-button:hover svg {
-  opacity: 1;
-}
+.sidebar { background: #fff; align-self: start; padding: 24px 12px 14px; min-width: 0; border-radius: 4px; }
+.profile { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 4px 12px 25px; overflow-wrap: anywhere; text-align: center; }
+.avatar { width: 64px; height: 64px; display: grid; place-items: center; font-size: 26px; font-weight: 600; border-radius: 50%; color: #2864c5; background: #eaf1ff; }
+.profile strong { font-size: 15px; font-weight: 600; }
+.caption { font-size: 12px; color: #939ba8; }
+.nav { display: flex; flex-direction: column; gap: 6px; }
+.nav a { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 18px; color: #626b7c; text-decoration: none; font-size: 14px; border-radius: 4px; }
+.nav a:hover { background: #f5f7fa; }
+.nav a:global(.active) { background: #edf3ff; color: #2878ff; font-weight: 600; }
+.nav :global(.anticon) { font-size: 17px; }
+.footer { padding-top: 28px; margin-top: 18px; border-top: 1px solid #f0f2f5; text-align: center; }
+.footer button { color: #8b94a3; font-size: 12px; }
+@media (max-width: 600px) { .sidebar { width: 100%; box-sizing: border-box; padding: 8px; display: flex; align-items: center; } .profile { display: none; } .nav { flex: 1; flex-direction: row; gap: 4px; justify-content: space-around; } .nav a { padding: 8px; min-height: 28px; gap: 6px; font-size: 12px; flex-direction: column; } .footer { border: 0; margin: 0; padding: 0; } .footer button { padding: 4px; } .footer button > span:last-child:not(:first-child) { display: none; } }

@@ -1,48 +1,21 @@
-.auth-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-  flex-direction: column;
-
-  .auth-logo {
-    transform: scale(1.4);
-  }
-
-  .auth-title {
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 2;
-  }
-  .auth-sub-title{
-    font-size: 14px;
-    margin-top: 5px;
-  }
-
-  .auth-tips {
-    font-size: 14px;
-    margin-top: 5px;
-  }
-
-  .auth-input {
-    margin: 3vh 0 0 0;
-    width: 300px;
-  }
-  .auth-error{
-    color: #ff5500;
-    font-size: 12px;
-    margin-top: 1vh;
-  }
-
-  .auth-actions {
-    margin-top: 3vh;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-
-    button:not(:last-child) {
-      margin-bottom: 10px;
-    }
-  }
-}
+.page { min-height: 100dvh; width: 100%; display: flex; flex-direction: column; background: #fff; color: #252a34; letter-spacing: 0; }
+.header { height: 72px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 40px; border-bottom: 1px solid #edf0f4; font-size: 20px; font-weight: 650; }
+.header > :first-child { color: #2878ff; font-size: 26px; }
+.main { flex: 1; display: grid; place-items: center; padding: 48px 24px; }
+.form { width: 100%; max-width: 360px; user-select: text; }
+.mark { width: 48px; height: 48px; display: grid; place-items: center; background: #edf4ff; color: #2878ff; border-radius: 8px; font-size: 26px; margin-bottom: 24px; }
+.form h1 { font-size: 28px; line-height: 1.4; margin: 0 0 8px; font-weight: 650; }
+.subtitle { color: #7b8493; font-size: 14px; margin: 0 0 32px; }
+.form label { display: block; font-size: 14px; font-weight: 500; margin: 20px 0 9px; cursor: default; }
+.form :global(.ant-input-affix-wrapper) { height: 46px; padding: 0 14px; border-radius: 6px; border-color: #dce1e8; box-shadow: none; }
+.form :global(.ant-input-prefix) { color: #8b94a3; margin-right: 10px; }
+.form input { max-width: 100%; min-height: 0; text-align: left; font-size: 15px; background: transparent; border: 0; padding: 0; color: #252a34; }
+.form :global(.ant-input-affix-wrapper-focused) { border-color: #2878ff; box-shadow: 0 0 0 3px #2878ff14; }
+.hint { font-size: 12px; color: #7b8493; display: block; margin-top: 7px; }
+.error { min-height: 22px; font-size: 13px; line-height: 20px; padding-top: 12px; color: #c33636; }
+.submit { height: 46px; font-size: 15px; margin-top: 8px; font-weight: 500; }
+.switch { display: flex; justify-content: center; gap: 5px; margin-top: 25px; font-size: 14px; color: #7b8493; }
+.switch button { border: 0; background: none; color: #246ee9; font: inherit; padding: 0; cursor: pointer; }
+.switch button:focus-visible { outline: 2px solid #2878ff; outline-offset: 4px; }
+.footer { text-align: center; color: #939ba8; font-size: 12px; padding: 24px; }
+@media (max-width: 600px) { .header { padding: 0 24px; height: 60px; } .main { align-items: start; padding-top: 44px; } }

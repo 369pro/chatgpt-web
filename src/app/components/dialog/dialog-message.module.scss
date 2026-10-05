@@ -3,22 +3,24 @@
   flex-direction: column;
   overflow: hidden;
   width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
   // background-color: #f4f4f4;
 }
 
-.header{
-  line-height: 60px;
-  border-bottom: 1px solid #F5F5F5;
-  color: #333;
-  font-weight: 500;
-  padding: 0 24px;
-  // border-bottom: solid 1px #d6d6d6;
-}
-
-.scroll{
-  flex: 1;
-  overflow: auto;
-  padding: 24px;
+.header { flex-shrink: 0; height: 76px; display: flex; align-items: center; justify-content: center; position: relative; padding: 0 24px; border-bottom: 1px solid #e8e8ed; background: rgba(250,250,252,.92); box-sizing: border-box; }
+.heading { display: flex; flex-direction: column; align-items: center; min-width: 0; gap: 4px; }
+.heading strong { font-size: 15px; font-weight: 600; color: #1d1d1f; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.heading > span { font-size: 11px; color: #86868b; }
+.back { display: none; }
+.scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; padding: 28px clamp(20px, 4vw, 64px); overflow-wrap: anywhere; scrollbar-width: thin; scrollbar-color: #c7c7cc transparent; }
+@media (max-width: 760px) {
+  .header { height: 64px; padding: 0 85px; }
+  .back { display: flex; align-items: center; gap: 3px; position: absolute; left: 12px; color: #007aff; background: none; border: 0; height: 44px; font: inherit; font-size: 14px; cursor: pointer; }
+  .back span { font-size: 32px; font-weight: 300; line-height: 1; }
+  .back:focus-visible { outline: 2px solid #007aff; border-radius: 8px; }
+  .scroll { padding: 20px 16px; }
 }
 .clear-context {
   margin: 20px 0 0 0;

@@ -1,50 +1,40 @@
-// @mixin 是 Sass 中的一个关键字，用于创建可重用的 CSS 样式规则。
-// 通过使用 @mixin，可以创建一组 CSS 样式规则，然后在需要的地方通过 @include 将这组样式规则应用到需要的选择器上。
-// 这样可以避免重复编写相同的 CSS 样式规则，提高样式代码的可维护性和可重用性。
-@mixin container {
-  background-color: var(--white);
-  border: var(--border-in-light);
-  border-radius: 10px;
-  box-shadow: var(--shadow);
-  color: var(--black);
-  background-color: var(--white);
-  min-width: 600px;
-  min-height: 480px;
-  max-width: 1200px;
+.shell { width: 100%; min-height: 100dvh; background: #f3f5f8; color: #252a34; letter-spacing: 0; }
+.topbar { height: 64px; background: white; border-bottom: 1px solid #e9edf2; }
+.topbarInner { max-width: 1280px; height: 100%; margin: auto; padding: 0 28px; display: flex; align-items: center; gap: 56px; box-sizing: border-box; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: #252a34; text-decoration: none; font-size: 21px; font-weight: 650; white-space: nowrap; }
+.brand > :first-child { color: #2878ff; font-size: 25px; }
+.topnav { align-self: stretch; display: flex; gap: 30px; font-size: 14px; }
+.topnav a { display: flex; align-items: center; gap: 8px; color: #697386; text-decoration: none; border-bottom: 2px solid transparent; }
+.topnav a:global(.active) { color: #2878ff; border-color: #2878ff; }
+.account { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13px; max-width: 190px; overflow-wrap: anywhere; }
+.avatar { background: #e5edfb; color: #2864c5; display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; font-weight: 600; }
+.workspace { max-width: 1280px; margin: auto; padding: 24px 28px; display: grid; grid-template-columns: 216px minmax(0, 1fr); gap: 24px; box-sizing: border-box; }
+.content { min-width: 0; --window-content-width: 100%; --full-height: 100%; }
+.chatShell { height: 100dvh; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.chatShell .topbar { flex-shrink: 0; }
+.chatShell .workspace { flex: 1; min-height: 0; width: 100%; margin: 0 auto; }
+.chatShell .content { min-height: 0; overflow: hidden; }
+.chatShell .workspace > :first-child { flex-shrink: 0; max-height: 100%; overflow-y: auto; }
+@media (max-width: 850px) { .topbarInner { gap: 24px; padding: 0 20px; } .workspace { grid-template-columns: 172px minmax(0, 1fr); padding: 20px; gap: 16px; } .account { font-size: 0; } }
+@media (max-width: 600px) { .topbarInner { padding: 0 16px; gap: 18px; } .brand { font-size: 18px; } .topnav { gap: 15px; font-size: 12px; } .topnav :global(.anticon) { display: none; } .account { display: none; } .workspace { display: flex; flex-direction: column; padding: 12px; gap: 12px; } }
+@media (max-width: 600px) { .chatShell .content { flex: 1; } }
 
-  display: flex;
-  overflow: hidden;
-  box-sizing: border-box;
-
-  width: var(--window-width);
-  height: var(--window-height);
+/* Chat workspace: quiet, continuous surfaces with a compact mobile tab bar. */
+.chatShell { background: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif; }
+.chatShell .topbar { background: rgba(255,255,255,.88); border-color: #e5e5e7; }
+.chatShell .brand { font-size: 19px; letter-spacing: -.5px; }
+.chatShell .workspace { max-width: 1500px; grid-template-columns: 180px minmax(0,1fr); gap: 20px; padding: 24px; }
+.chatShell .workspace > aside { background: transparent; }
+@media (max-width: 1000px) and (min-width: 601px) {
+  .chatShell .workspace { grid-template-columns: 150px minmax(0,1fr); gap: 12px; padding: 16px; }
 }
-
-.container {
-  @include container();
+@media (max-width: 600px) {
+  .chatShell .topbar { height: 52px; }
+  .chatShell .brand { font-size: 17px; }
+  .chatShell .brand > :first-child { font-size: 20px; }
+  .chatShell .topbarInner { justify-content: space-between; gap: 12px; }
+  .chatShell .topnav { gap: 14px; font-size: 11px; }
+  .chatShell .workspace { padding: 0; gap: 0; }
+  .chatShell .content { order: 0; width: 100%; }
+  .chatShell .workspace > aside { order: 1; border-top: 1px solid #e5e5e7; border-radius: 0; background: #fafafa; padding: 5px 8px calc(5px + env(safe-area-inset-bottom)); }
 }
-
-// 使用 @media，可以根据设备的屏幕尺寸或方向，应用不同的 CSS 样式。
-@media only screen and (min-width: 600px) {
-  .tight-container {
-    --window-width: 100vw;
-    --window-height: var(--full-height);
-    --window-content-width: calc(100% - var(--sidebar-width));
-
-    @include container();
-
-    max-width: 100vw;
-    max-height: var(--full-height);
-
-    border-radius: 0;
-    border: 0;
-  }
-}
-
-.window-content {
-  width: var(--window-content-width);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-

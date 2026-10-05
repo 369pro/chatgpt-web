@@ -9,7 +9,7 @@ import {useEffect} from "react";
 /**
  * 对话框列表
  */
-export function DialogList() {
+export function DialogList({onSelect}: {onSelect?: () => void}) {
     const navigate = useNavigate();
     const chatStore = userChatStore();
     const [sessions, currentSessionIndex, selectSession, currentSession] = userChatStore(
@@ -43,6 +43,7 @@ export function DialogList() {
                         onClick={() => {
                             // 点击时跳转到对应的界面，并传递必要参数信息
                             selectSession(index);
+                            onSelect?.();
                             navigate(`/chat/${session.id}`, {state: {title: session.dialog.title}})
                         }}
                         onClickDelete={() => {

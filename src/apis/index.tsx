@@ -87,16 +87,20 @@ export const completions = (data: {
  * 登录鉴权接口
  * @param token
  */
-export const login = (token: string) => {
-    const accessState = useAccessStore.getState()
-    return fetch(`${openAIApiHostUrl}/api/v1/auth/login`, {
+export const login = (username: string, password: string, register = false) => {
+    return fetch(`${openAIApiHostUrl}/api/v1/auth/${register ? 'register' : 'password/login'}`, {
         method: 'post',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: `code=${accessState.accessCode}`
+        body: new URLSearchParams({username, password}),
+        signal: AbortSignal.timeout(15000),
     });
 };
+
+export const logout = () => fetch(`${openAIApiHostUrl}/api/v1/auth/logout`, {
+    method: 'POST', headers: getHeaders(), signal: AbortSignal.timeout(10000),
+});
 
 /**
  * 商品列表查询
@@ -161,6 +165,15 @@ export const calendarSignRebate = () => {
             "}");
     }
 }
+
+/** 按月查询当前用户的签到日期（YYYY-MM-DD）。 */
+export const queryCalendarSignRecords = (month: string, signal?: AbortSignal) => {
+    return fetch(`${bigMarketApiHostUrl}/api/v1/raffle/activity/query_calendar_sign_records_by_token?${new URLSearchParams({month})}`, {
+        method: "POST",
+        headers: getHeaders(),
+        signal,
+    });
+};
 
 /**
  * 判断是否签到接口
@@ -239,7 +252,8 @@ export const draw = (activityId?: number, requestId?: string) => {
                 'Content-Type': 'application/json;charset=utf-8'
             },
             body: JSON.stringify({
-                activityId: activityId
+                activityId: activityId,
+                ...(requestId ? {requestId} : {})
             })
         })
     } catch (error) {
@@ -265,8 +279,7 @@ export const queryRaffleAwardList = (activityId?: number) => {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                activityId: activityId,
-                ...(requestId ? {requestId} : {})
+                activityId: activityId
             })
         });
     } catch (error) {
@@ -330,16 +343,6 @@ export const queryStageActivityId = () => {
 
 
 
-
-
-/** 按月查询当前用户的签到日期（YYYY-MM-DD）。 */
-export const queryCalendarSignRecords = (month: string, signal?: AbortSignal) => {
-    return fetch(`${bigMarketApiHostUrl}/api/v1/raffle/activity/query_calendar_sign_records_by_token?${new URLSearchParams({month})}`, {
-        method: "POST",
-        headers: getHeaders(),
-        signal,
-    });
-};
 
 
 /** 查询当前活动的中奖展示和最新播报。 */

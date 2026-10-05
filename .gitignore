@@ -12,6 +12,10 @@
 /.next/
 /out/
 
+# local environment overrides
+.env.local
+.env.*.local
+
 # production
 /build
 

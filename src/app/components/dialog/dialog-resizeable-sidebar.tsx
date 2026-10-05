@@ -14,6 +14,10 @@ export function DialogResizeableSidebar(props: PropsWithChildren<Props>) {
                 height: "100%",
             }}
             style={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+                overflow: 'hidden',
                 borderRight: '1px solid #f5f5f5'
             }}
         >

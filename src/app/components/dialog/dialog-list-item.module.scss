@@ -1,73 +1,20 @@
-.wrapper{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px;
-  cursor: pointer;
-  p{
-    margin: 0;
-  }
-}
+.wrapper { position: relative; display: flex; align-items: center; gap: 12px; padding: 0; margin: 4px 10px; border-radius: 13px; cursor: pointer; color: #6e6e73; transition: background .15s; }
+.wrapper p { margin: 0; }
+.wrapper:hover { background: #eaeaed; }
+.wrapper:focus-visible { outline: 2px solid #007aff; outline-offset: -2px; }
+.wrapper.selected { background: #e2eaf6; }
+.left { flex-shrink: 0; }
+.left img { border-radius: 12px; background: #fff; }
+.right { flex: 1; min-width: 0; }
+.line1 { display: flex; align-items: baseline; gap: 8px; }
+.title { font-size: 14px; font-weight: 600; color: #1d1d1f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.time { font-size: 10px; color: #6e6e73; white-space: nowrap; }
+.line2 { padding-top: 6px; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.chat-item-delete { position: absolute; right: 8px; bottom: 9px; display: grid; place-items: center; border: 0; border-radius: 7px; background: #eaeaed; color: #6e6e73; width: 28px; height: 28px; opacity: 0; cursor: pointer; }
+.wrapper:hover .chat-item-delete, .wrapper:focus-within .chat-item-delete { opacity: 1; }
+@media (hover: none) { .chat-item-delete { position: static; opacity: 1; flex-shrink: 0; background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .wrapper { transition: none; } }
 
-.selected{
-  background-color: rgb(240,240,240);
-}
-
-.left{
-  margin-right: 14px;
-  img{
-    background-color: #f6f6f6;
-    border-radius: 2px;
-    width: 100%;
-    height: 100%;
-  }
-}
-
-.right{
-  flex: 1;
-  overflow: hidden;
-}
-
-.line1{
-  display: flex;
-  justify-content: space-between;
-}
-
-.title{
-  font-size: 14px;
-  color: #333;
-}
-
-
-.time{
-  font-size: 9px;
-  color: #d5d5d5;
-}
-
-.line2{
-  padding-top: 6px;
-  font-size: 10px;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-  max-width: 100%;
-  text-align: left;
-}
-
-.chat-item-delete {
-  position: relative;
-  top: 5px;
-  right: -15px;
-  transition: all ease 0.3s;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.wrapper:hover > .chat-item-delete {
-  opacity: 0.5;
-  transform: translateX(-10px);
-}
-
-.wrapper:hover > .chat-item-delete:hover {
-  opacity: 1;
-}
+.select { width: 100%; display: flex; align-items: center; gap: 12px; padding: 15px 12px; border: 0; border-radius: 13px; background: transparent; text-align: left; color: inherit; font: inherit; cursor: pointer; min-width: 0; }
+.select:focus-visible { outline: 2px solid #007aff; outline-offset: -2px; }
+@media (hover: none) { .chat-item-delete { margin-right: 8px; } }

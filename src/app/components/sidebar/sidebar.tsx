@@ -1,87 +1,39 @@
+import {NavLink, useNavigate} from "react-router-dom";
+import {GiftOutlined, MessageOutlined, TeamOutlined, ShoppingOutlined, LogoutOutlined} from "@ant-design/icons";
+import {Button, message} from "antd";
+import {useAccessStore} from "@/app/store/access";
+import {logout} from "@/apis";
+import {useState} from "react";
 import styles from "./sidebar.module.scss";
 
-import ChatGPTIcon from "../../icons/chatgpt.svg";
-import ChatIcon from "../../icons/chat.svg";
-import RoleIcon from "../../icons/role.svg";
-import MaxIcon from "../../icons/max.svg";
-import MinIcon from "../../icons/min.svg";
-import ExitIcon from "../../icons/exit.svg";
-import SaleIcon from "../../icons/sale.svg";
-import GitIcon from "../../icons/git.svg";
-import MarketIcon from "../../icons/market.svg";
-
-import {useNavigate} from "react-router-dom";
-import {Path} from "@/app/constants";
-import {IconButton} from "@/app/components/button/button";
-import {useAppConfig} from "@/app/store/config";
-import {useAccessStore} from "@/app/store/access";
-
 export function SideBar() {
-
-    const navigate = useNavigate();
-    const config = useAppConfig();
     const access = useAccessStore();
-
-    return (
-        <div className={styles.sidebar}>
-            <div className={styles["action-button"]}>
-                <IconButton icon={<ExitIcon/>} backgroundColor={"#ff4e4e"} onClick={() => {
-                    const confirmed = window.confirm('你是否确定退出登录？');
-                    if (confirmed) {
-                        access.goToLogin();
-                    }
-                }}/>
-                <IconButton icon={<MinIcon/>} backgroundColor={"#f3c910"} onClick={() => {
-                    config.update(
-                        (config) => (config.tightBorder = false),
-                    );
-                }}/>
-                <IconButton icon={<MaxIcon/>} backgroundColor={"#04c204"} onClick={() => {
-                    config.update(
-                        (config) => (config.tightBorder = true),
-                    );
-                }}/>
-            </div>
-
-            <div className={styles["sidebar-header"]}>
-                <ChatGPTIcon/>
-            </div>
-
-            <div className={styles["sidebar-chat"]}
-                 onClick={() => {
-                     navigate(Path.Chat)
-                 }}>
-                <ChatIcon/>
-            </div>
-
-            <div className={styles["sidebar-role"]}
-                 onClick={() => {
-                     navigate(Path.Role)
-                 }}>
-                <RoleIcon/>
-            </div>
-
-            <div className={styles["sidebar-mall"]}
-                 onClick={() => {
-                     navigate(Path.Sale)
-                 }}>
-                <SaleIcon/>
-            </div>
-
-            <div className={styles["sidebar-mall"]}
-                 onClick={() => {
-                     navigate(Path.Market)
-                 }}>
-                <MarketIcon/>
-            </div>
-
-            <div className={styles["sidebar-git"]}
-                 onClick={() => {
-                     window.open('https://bugstack.cn/md/project/chatgpt/chatgpt.html');
-                 }}>
-                <GitIcon/>
-            </div>
-
+    const navigate = useNavigate();
+    const [pending, setPending] = useState(false);
+    const [notice, holder] = message.useMessage();
+    async function signOut() {
+        setPending(true);
+        try {
+            const response = await logout();
+            const result = await response.json();
+            if (!response.ok || result.code !== "0000") throw new Error();
+            access.goToLogin();
+            navigate("/auth", {replace: true});
+        } catch { notice.error("退出失败，请重试"); }
+        finally { setPending(false); }
+    }
+    return <aside className={styles.sidebar}>
+        {holder}
+        <div className={styles.profile}>
+            <span className={styles.avatar}>{access.username.slice(0, 1).toUpperCase()}</span>
+            <strong>{access.username}</strong><span className={styles.caption}>个人中心</span>
         </div>
-    )
+        <nav className={styles.nav} aria-label="个人中心导航">
+            <NavLink to="/market"><GiftOutlined/>幸运抽奖</NavLink>
+            <NavLink to="/chat"><MessageOutlined/>我的对话</NavLink>
+            <NavLink to="/role"><TeamOutlined/>角色助手</NavLink>
+            <NavLink to="/sale"><ShoppingOutlined/>额度商城</NavLink>
+        </nav>
+        <div className={styles.footer}><Button type="text" aria-label="退出登录" title="退出登录" icon={<LogoutOutlined/>} loading={pending} onClick={signOut}>退出登录</Button></div>
+    </aside>;
 }

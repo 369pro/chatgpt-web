@@ -3,9 +3,11 @@ import styles from './dialog-message-input.module.scss';
 import {Button, Input} from "antd";
 import {userChatStore} from "@/app/store/chat-store";
 import DialogMessagesActions from "./dialog-message-actions";
+import {StopOutlined} from "@ant-design/icons";
+import {MessageStatus} from "@/types/chat";
 
 interface Props {
-    onEnter: (value: any) => void;
+    onEnter: (value: string) => void | Promise<void>;
 }
 
 /**
@@ -21,14 +23,16 @@ export function DialogMessageInput(props: Props) {
             setSendShortcut("Command+Enter");
         }
     }, []);
-    const [value, setValue] = useState<string>();
+    const [value, setValue] = useState<string>("");
     const currentSession = chatStore.currentSession();
+    const isSending = currentSession.messages.some((message) => message.status === MessageStatus.Sending);
 
-    const onSend = (value: any) => {
+    const onSend = (value: string) => {
+        if (isSending || !value.trim()) return;
         // 输入内容
         onEnter(value);
         // 清空当前对话框
-        setValue(undefined);
+        setValue("");
     }
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -44,14 +48,29 @@ export function DialogMessageInput(props: Props) {
             <DialogMessagesActions config={currentSession.config}/>
             <Input.TextArea
                 value={value}
+                disabled={isSending}
                 onChange={(e) => setValue(e.target.value)}
                 className={styles.textarea}
                 placeholder={"请输入"}
                 autoFocus
                 onKeyDown={handleKeyDown}/>
-            <Button disabled={!value?.length} type="primary" className={styles.btn}
+            {isSending ? (
+                <Button
+                    type="default"
+                    icon={<StopOutlined/>}
+                    className={styles.btn}
+                    aria-label="停止生成"
+                    onClick={() => chatStore.cancelGeneration(currentSession.id)}
+                >停止</Button>
+            ) : (
+                <Button
+                    disabled={!value.trim()}
+                    type="primary"
                     title={`发送 (${sendShortcut})`}
-                    onClick={() => onSend(value)}>发送</Button>
+                    className={styles.btn}
+                    onClick={() => onSend(value)}
+                >发送</Button>
+            )}
         </div>
 
     );

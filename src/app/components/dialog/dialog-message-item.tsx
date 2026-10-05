@@ -1,6 +1,6 @@
 import styles from './dialog-message-item.module.scss'
 import {Avatar, Space} from "antd";
-import {Message, MessageRole} from "@/types/chat";
+import {Message, MessageRole, MessageStatus} from "@/types/chat";
 import {RefObject} from 'react';
 import {Markdown} from '@/app/components/markdown/markdown';
 import {CopyOutlined, DeleteOutlined, SyncOutlined} from '@ant-design/icons'
@@ -25,9 +25,13 @@ export function DialogMessageItem(props: Props) {
     const {message, parentRef} = props;
     const chatStore = userChatStore();
     const isUser = message.role === MessageRole.user;
+    const isRetryable = !isUser && (
+        message.status === MessageStatus.Error ||
+        message.status === MessageStatus.Cancelled
+    );
     const date = message?.time ? dayjs(message.time).format('YYYY/MM/DD HH:mm:ss') : ''
     const retryHandle = () => {
-        chatStore.onRetry()
+        void chatStore.onRetry(message.id)
     }
     const copyHandle = async () => {
         copyToClipboard(message.content)
@@ -53,7 +57,7 @@ export function DialogMessageItem(props: Props) {
                     </div>
                     <div className={styles['chat-message-edit']}>
                         <Space>
-                            <ChatAction icon={<SyncOutlined/>} text="重试" onClick={retryHandle}/>
+                            {isRetryable && <ChatAction icon={<SyncOutlined/>} text="重试" onClick={retryHandle}/>} 
                             <ChatAction icon={<CopyOutlined/>} text="复制" onClick={copyHandle}/>
                             <ChatAction icon={<DeleteOutlined/>} text="删除" onClick={deleteHandle}/>
                         </Space>
@@ -65,11 +69,18 @@ export function DialogMessageItem(props: Props) {
                         fontSize={14}
                         parentRef={parentRef}
                         defaultShow={false}
-                        loading={
-                            (message.content.length === 0) &&
-                            !isUser
-                        }
+                        loading={message.status === MessageStatus.Sending && !isUser}
                     />
+                    {message.status === MessageStatus.Error && (
+                        <div className={`${styles['chat-message-status']} ${styles.error}`} role="alert">
+                            {message.error || "生成失败，请重试"}
+                        </div>
+                    )}
+                    {message.status === MessageStatus.Cancelled && (
+                        <div className={`${styles['chat-message-status']} ${styles.cancelled}`} role="status">
+                            {message.error || "已停止生成"}
+                        </div>
+                    )}
                 </div>
                 <div className={styles['date']}>{date}</div>
             </div>
