@@ -7,12 +7,13 @@ export function DialogResizeableSidebar(props: PropsWithChildren<Props>) {
     const {minWidth = 200, children} = props;
     return (
         <Resizable
-            minWidth={220}
+            minWidth={minWidth}
             maxWidth={320}
             defaultSize={{
                 width: "100%",
                 height: "100%",
             }}
+            enable={{}}
             style={{
                 display: 'flex',
                 flexDirection: 'column',

@@ -10,9 +10,11 @@
 .title { font-size: 14px; font-weight: 600; color: #1d1d1f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .time { font-size: 10px; color: #6e6e73; white-space: nowrap; }
 .line2 { padding-top: 6px; font-size: 12px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.chat-item-delete { position: absolute; right: 8px; bottom: 9px; display: grid; place-items: center; border: 0; border-radius: 7px; background: #eaeaed; color: #6e6e73; width: 28px; height: 28px; opacity: 0; cursor: pointer; }
-.wrapper:hover .chat-item-delete, .wrapper:focus-within .chat-item-delete { opacity: 1; }
-@media (hover: none) { .chat-item-delete { position: static; opacity: 1; flex-shrink: 0; background: transparent; } }
+.chat-item-delete, .chat-item-rename { position: absolute; bottom: 9px; display: grid; place-items: center; border: 0; border-radius: 7px; background: #eaeaed; color: #6e6e73; width: 28px; height: 28px; opacity: 0; cursor: pointer; }
+.chat-item-delete { right: 8px; }
+.chat-item-rename { right: 42px; }
+.wrapper:hover .chat-item-delete, .wrapper:hover .chat-item-rename, .wrapper:focus-within .chat-item-delete, .wrapper:focus-within .chat-item-rename { opacity: 1; }
+@media (hover: none) { .chat-item-delete, .chat-item-rename { position: static; opacity: 1; flex-shrink: 0; background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .wrapper { transition: none; } }
 
 .select { width: 100%; display: flex; align-items: center; gap: 12px; padding: 15px 12px; border: 0; border-radius: 13px; background: transparent; text-align: left; color: inherit; font: inherit; cursor: pointer; min-width: 0; }

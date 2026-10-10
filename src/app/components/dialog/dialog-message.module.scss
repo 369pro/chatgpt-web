@@ -1,4 +1,5 @@
 .wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -9,18 +10,48 @@
   // background-color: #f4f4f4;
 }
 
-.header { flex-shrink: 0; height: 76px; display: flex; align-items: center; justify-content: center; position: relative; padding: 0 24px; border-bottom: 1px solid #e8e8ed; background: rgba(250,250,252,.92); box-sizing: border-box; }
+.runStatus { padding: 6px 20px; color: #52606d; background: #f5f8fc; border-bottom: 1px solid #edf1f5; font-size: 12px; }
+.readOnlyBanner { display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; padding: 7px 16px; border-bottom: 1px solid #eadfbb; background: #fff9e8; color: #6f5b27; font-size: 12px; }
+.readOnlyBanner a { color: #007aff; font-weight: 600; text-decoration: none; }
+.readOnlyBanner a:hover, .readOnlyBanner a:focus-visible { text-decoration: underline; }
+
+.header { flex-shrink: 0; height: 76px; display: flex; align-items: center; justify-content: center; position: relative; padding: 0 84px; border-bottom: 1px solid #e8e8ed; background: rgba(250,250,252,.92); box-sizing: border-box; }
 .heading { display: flex; flex-direction: column; align-items: center; min-width: 0; gap: 4px; }
 .heading strong { font-size: 15px; font-weight: 600; color: #1d1d1f; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .heading > span { font-size: 11px; color: #86868b; }
+.contextToggle { position: absolute; right: 20px; display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 0 11px; border: 1px solid #d2d2d7; border-radius: 16px; background: #f5f5f7; color: #007aff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
+.contextToggle:hover, .contextToggle:focus-visible { border-color: #007aff; background: #fff; outline: none; }
 .back { display: none; }
 .scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; padding: 28px clamp(20px, 4vw, 64px); overflow-wrap: anywhere; scrollbar-width: thin; scrollbar-color: #c7c7cc transparent; }
+.minimap { position: absolute; z-index: 3; top: 50%; left: 12px; display: flex; width: 20px; max-height: min(55vh, 420px); transform: translateY(-50%); pointer-events: none; }
+.minimapRail { display: flex; width: 100%; max-height: inherit; flex-direction: column; align-items: center; gap: 7px; overflow-y: auto; overflow-x: visible; padding: 6px 2px; scrollbar-width: none; pointer-events: auto; }
+.minimapRail::-webkit-scrollbar { display: none; }
+.minimapMarker { position: relative; display: grid; place-items: center; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 9px; background: transparent; cursor: pointer; }
+.minimapLine { display: block; width: 12px; height: 3px; border-radius: 2px; background: #c7c7cc; transition: width 140ms ease, background-color 140ms ease, box-shadow 140ms ease; }
+.minimapMarker:hover .minimapLine, .minimapMarker:focus-visible .minimapLine { width: 16px; background: #7d8ca0; }
+.minimapMarker:focus-visible { outline: 2px solid #007aff; outline-offset: 2px; }
+.minimapMarkerActive .minimapLine { width: 17px; background: #007aff; box-shadow: 0 0 0 2px rgba(0, 122, 255, .14); }
+.minimapTooltip { position: absolute; z-index: 20; display: block; width: max-content; max-width: min(340px, 42vw); padding: 7px 9px; border: 1px solid #e5e5e7; border-radius: 8px; background: #fff; box-shadow: 0 8px 24px rgba(35, 35, 45, .14); color: #1d1d1f; font-size: 11px; line-height: 1.35; text-align: left; white-space: normal; pointer-events: none; transform: translateY(-50%); }
+.queueStatus { display: flex; align-items: center; gap: 10px; flex-shrink: 0; padding: 6px 20px; border-bottom: 1px solid #edf1f5; background: #fbfcfe; color: #52606d; font-size: 12px; }
+.queueItems { display: flex; min-width: 0; flex-wrap: wrap; gap: 6px; }
+.queueItem { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 8px; background: #eef5ff; color: #36506b; white-space: nowrap; }
+.queueItem strong { color: #1d1d1f; font-weight: 600; }
+.queueItem button { padding: 0 3px; border: 0; border-radius: 4px; background: transparent; color: #007aff; cursor: pointer; font: inherit; font-size: 11px; }
+.queueItem button:hover, .queueItem button:focus-visible { background: #dcecff; outline: none; }
 @media (max-width: 760px) {
-  .header { height: 64px; padding: 0 85px; }
+  .header { height: 64px; padding: 0 82px; }
   .back { display: flex; align-items: center; gap: 3px; position: absolute; left: 12px; color: #007aff; background: none; border: 0; height: 44px; font: inherit; font-size: 14px; cursor: pointer; }
   .back span { font-size: 32px; font-weight: 300; line-height: 1; }
   .back:focus-visible { outline: 2px solid #007aff; border-radius: 8px; }
   .scroll { padding: 20px 16px; }
+  .contextToggle { right: 12px; }
+  .queueStatus { align-items: flex-start; flex-direction: column; gap: 5px; padding: 6px 12px; }
+  .minimap { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .minimapLine,
+  .minimapTooltip { transition: none; }
 }
 .clear-context {
   margin: 20px 0 0 0;

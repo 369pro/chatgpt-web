@@ -2,8 +2,7 @@ import {
     calendarSignRebate,
     isCalendarSignRebate,
     queryUserActivityAccount,
-    queryUserCreditAccount,
-    queryAccountQuota
+    queryUserCreditAccount
 } from "@/apis";
 import React, {useEffect, useState} from "react";
 import {UserActivityAccountVO} from "@/types/UserActivityAccountVO";
@@ -11,7 +10,6 @@ import {UserActivityAccountVO} from "@/types/UserActivityAccountVO";
 import styles from "./MemberCard.module.scss";
 import {SaleProductEnum} from "@/types/sale_product";
 import {useAccessStore} from "@/app/store/access";
-import {AccountQuotaResponseDTO} from "@/types/AccountQuotaResponseDTO";
 
 // @ts-ignore
 export function MemberCard({allRefresh, activityId}) {
@@ -20,8 +18,6 @@ export function MemberCard({allRefresh, activityId}) {
     const [dayCount, setDayCount] = useState(0)
     const [creditAmount, setCreditAmount] = useState(0)
     const [sign, setSign] = useState(false);
-
-    const [surplusQuota, setSurplusQuota] = useState(0);
 
     const handleRefresh = () => {
         setRefresh(refresh + 1)
@@ -118,18 +114,6 @@ export function MemberCard({allRefresh, activityId}) {
         setSign(data);
     }
 
-    const queryAccountQuotaHandle = async () => {
-        const result = await queryAccountQuota();
-        const {code, info, data}: { code: string; info: string; data: AccountQuotaResponseDTO } = await result.json();
-
-        // 登录拦截
-        if (code === SaleProductEnum.NeedLogin) {
-            useAccessStore.getState().goToLogin();
-        }
-        // 设置结果
-        setSurplusQuota(data.surplusQuota);
-    }
-
     useEffect(() => {
 
         queryUserActivityAccountHandle().then(r => {
@@ -139,9 +123,6 @@ export function MemberCard({allRefresh, activityId}) {
         });
 
         isCalendarSignRebateHandle().then(r => {
-        });
-
-        queryAccountQuotaHandle().then(r => {
         });
 
     }, [refresh, allRefresh])
@@ -176,21 +157,6 @@ export function MemberCard({allRefresh, activityId}) {
                     刷新⌛️
                 </button>
 
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: '1rem',
-                        right: '1rem',
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                        color: 'white',
-                        fontWeight: 'bold',
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '9999px',
-                        boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                    }}
-                >
-                    对话额度: {surplusQuota ? surplusQuota : 0} 次
-                </div>
             </div>
 
 

@@ -13,13 +13,71 @@
   backdrop-filter: blur(20px);
 }
 
+.quoteTray {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 1px 2px 0;
+}
+
+.quoteLabel {
+  flex: 0 0 auto;
+  color: #52606d;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.quoteChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: min(100%, 320px);
+  min-height: 24px;
+  padding: 3px 5px 3px 8px;
+  border: 1px solid #d8d2fa;
+  border-radius: 13px;
+  background: #f6f3ff;
+  color: #4e437c;
+  font-size: 11px;
+}
+
+.quoteText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quoteRemove {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6e6394;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.quoteRemove:hover,
+.quoteRemove:focus-visible {
+  outline: none;
+  background: #e8e1ff;
+  color: #3f326f;
+}
+
 .textarea {
   box-sizing: border-box;
   width: 100%;
   min-height: 72px !important;
   height: 72px !important;
   margin-top: 0;
-  padding: 12px 92px 34px 14px !important;
+  padding: 12px 154px 34px 14px !important;
   resize: none !important;
   overflow-y: auto;
   border: 1px solid #d2d2d7 !important;
@@ -55,10 +113,17 @@
   }
 }
 
-.btn {
+.buttonGroup {
   position: absolute;
   right: 22px;
   bottom: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn,
+.stopBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -114,14 +179,19 @@
   .textarea {
     min-height: 68px !important;
     height: 68px !important;
-    padding: 11px 86px 30px 13px !important;
+    padding: 11px 142px 30px 13px !important;
     border-radius: 17px !important;
     font-size: 16px;
   }
 
-  .btn {
+  .buttonGroup {
     right: 18px;
     bottom: 16px;
+    gap: 4px;
+  }
+
+  .btn,
+  .stopBtn {
     min-width: 48px;
     height: 30px;
     padding: 0 12px;
@@ -137,7 +207,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .textarea,
-  .btn {
+  .btn,
+  .stopBtn {
     transition: none;
   }
 }

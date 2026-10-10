@@ -47,7 +47,7 @@ export function Auth() {
                 <label htmlFor="password">密码</label>
                 <Input.Password id="password" name="password" prefix={<LockOutlined/>} placeholder="输入密码"
                     autoComplete={register ? "new-password" : "current-password"} value={password}
-                    minLength={8} maxLength={64} required disabled={pending}
+                    minLength={register ? 8 : 1} maxLength={64} required disabled={pending}
                     onChange={e => {setPassword(e.target.value); setError("");}}/>
                 {register && <>
                     <span className={styles.hint}>8-64 位字符，不超过 72 字节</span>

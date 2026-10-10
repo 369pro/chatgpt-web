@@ -5,13 +5,52 @@
   box-sizing: border-box; box-shadow: 0 12px 40px rgba(0, 0, 0, .035);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", sans-serif;
 }
-.sessions { flex: 0 0 280px; min-width: 0; background: #f5f5f7; }
+.sessions { flex: 0 0 var(--session-width, 280px); width: var(--session-width, 280px); min-width: 0; background: #f5f5f7; }
 .sessions > :first-child { width: 100% !important; min-width: 0 !important; max-width: none !important; }
+.resizeHandle {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 12px;
+  width: 12px;
+  margin: 0 -6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+}
+.resizeHandle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: #d9d9de;
+}
+.resizeHandle::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 44px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  background: #a2a6b0;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .8);
+}
+.resizeHandle:hover::after,
+.resizeHandle:focus-visible::after,
+.resizing .resizeHandle::after { background: #1677ff; }
+.resizeHandle:focus-visible { outline: 2px solid rgba(22, 119, 255, .45); outline-offset: -1px; }
+.resizing, .resizing * { user-select: none; }
 .conversation { flex: 1; min-width: 0; min-height: 0; }
-@media (max-width: 1100px) { .sessions { flex-basis: 240px; } }
 @media (max-width: 760px) {
   .chat { border-radius: 18px; }
   .sessions { display: none; }
+  .resizeHandle { display: none; }
   .showList .sessions { display: block; flex: 1; }
   .showList .conversation { display: none; }
 }

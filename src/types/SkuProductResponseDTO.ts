@@ -10,7 +10,7 @@ export interface SkuProductResponseDTO {
     /**
      * 活动个人参与次数ID
      */
-    activityCountId: number;
+    quotaPlanId: number;
     /**
      * 库存总量
      */

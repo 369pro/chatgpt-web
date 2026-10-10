@@ -12,8 +12,7 @@ type PaymentStatus = 'CREATE' | 'WAIT' | 'COMPLETED' | 'CLOSE';
 
 type Payment = {
     orderId: string; status: PaymentStatus;
-    payUrl?: string; amount: number; creditAmount: string | null; feeRate: string | null; feeAmount: string | null;
-    quota: number | null;
+    payUrl?: string; amount: number; creditAmount: string; feeRate: string | null; feeAmount: string | null;
     productName: string; expiresAt: number;
 };
 
@@ -67,28 +66,22 @@ function parsePayment(value: unknown): Payment | null {
     const status = candidate.status;
     const productName = candidate.productName;
     const amount = Number(candidate.amount);
-    const rawCreditAmount = candidate.creditAmount;
-    const creditAmount = rawCreditAmount === null || rawCreditAmount === undefined
-        ? null
-        : parseMoney(rawCreditAmount);
+    const creditAmount = parseMoney(candidate.creditAmount);
     const rawFeeRate = candidate.feeRate;
     const feeRate = rawFeeRate === null || rawFeeRate === undefined ? null : parseFeeRate(rawFeeRate);
     const rawFeeAmount = candidate.feeAmount;
     const feeAmount = rawFeeAmount === null || rawFeeAmount === undefined ? null : parseMoney(rawFeeAmount);
-    const rawQuota = candidate.quota;
-    const quota = rawQuota === null || rawQuota === undefined || rawQuota === '' ? null : Number(rawQuota);
     const expiresAt = Number(candidate.expiresAt);
     if (typeof orderId !== 'string' || !orderId || !isPaymentStatus(status) ||
         typeof productName !== 'string' || !productName ||
         !Number.isFinite(amount) ||
-        (creditAmount === null && rawCreditAmount !== null && rawCreditAmount !== undefined) ||
+        creditAmount === null ||
         (feeRate === null && rawFeeRate !== null && rawFeeRate !== undefined) ||
         (feeAmount === null && rawFeeAmount !== null && rawFeeAmount !== undefined) ||
-        (quota !== null && !Number.isFinite(quota)) || (creditAmount === null && quota === null) ||
         !Number.isFinite(expiresAt)) return null;
     const payUrl = typeof candidate.payUrl === 'string' && candidate.payUrl.trim() ? candidate.payUrl : undefined;
     return {
-        orderId, status, amount, creditAmount, feeRate, feeAmount, quota, productName, expiresAt,
+        orderId, status, amount, creditAmount, feeRate, feeAmount, productName, expiresAt,
         ...(payUrl ? {payUrl} : {}),
     };
 }
@@ -185,7 +178,6 @@ export function Sale() {
     const [checkError, setCheckError] = useState('');
     const [checkoutError, setCheckoutError] = useState('');
     const [walletBalance, setWalletBalance] = useState<string | null>(null);
-    const [legacyQuota, setLegacyQuota] = useState<number | null>(null);
     const [balanceRefreshing, setBalanceRefreshing] = useState(false);
     const pollBusy = useRef(false);
     const balanceRequestBusy = useRef(false);
@@ -222,13 +214,7 @@ export function Sale() {
             if (typeof availableAmount !== 'string' || formatCny(availableAmount) === '—') {
                 throw new Error('余额数据格式无效');
             }
-            const returnedLegacyQuota = result.data?.legacyQuota;
-            if (returnedLegacyQuota !== undefined && returnedLegacyQuota !== null &&
-                (!Number.isInteger(returnedLegacyQuota) || returnedLegacyQuota < 0)) {
-                throw new Error('历史额度数据格式无效');
-            }
             setWalletBalance(availableAmount);
-            setLegacyQuota(returnedLegacyQuota ?? null);
         } finally {
             balanceRequestBusy.current = false;
             setBalanceRefreshing(false);
@@ -379,7 +365,6 @@ export function Sale() {
         {error && <Alert type="error" showIcon message={error} className={styles.notice}/>}
         <div className={styles.balanceSummary} aria-label="账户余额">
             <div><span>钱包余额</span><strong>{walletBalance === null ? '—' : formatCny(walletBalance)}</strong></div>
-            <div><span>历史剩余额度</span><strong>{legacyQuota === null ? '—' : `${legacyQuota} 次`}</strong></div>
             <Button type="text" icon={<ReloadOutlined spin={balanceRefreshing}/>} title="刷新余额" aria-label="刷新余额"
                     onClick={() => void refreshBalance().catch(e => setError(e instanceof Error ? e.message : '余额加载失败'))}
                     disabled={balanceRefreshing}/>
@@ -402,7 +387,7 @@ export function Sale() {
                 )}</div>}
         {payment && !showModal && !complete && !closed &&
             <Button className={styles.pending} onClick={() => setShowModal(true)}>查看待支付订单 {payment.orderId}</Button>}
-        <Modal title={complete ? (payment?.creditAmount === null ? '历史额度已到账' : '余额已到账') : closed ? '订单已关闭' : '支付宝沙箱支付'}
+        <Modal title={complete ? '余额已到账' : closed ? '订单已关闭' : '支付宝沙箱支付'}
                open={showModal} onCancel={dismissPayment} footer={null} width={460}>
             {payment && <div className={styles.checkout}>
                 {complete && <CheckCircleFilled className={styles.success}/>}
@@ -410,11 +395,9 @@ export function Sale() {
                 <div className={styles.checkoutAmount}>支付 {formatCny(payment.amount)}</div>
                 <dl><dt>订单编号</dt><dd>{payment.orderId}</dd>
                     <dt>支付金额</dt><dd>{formatCny(payment.amount)}</dd>
-                    {payment.creditAmount === null ? <><dt>历史对话额度</dt><dd>{payment.quota} 次</dd></> : <>
-                        <dt className={styles.feeDetail}>手续费比例</dt><dd className={styles.feeDetail}>{formatFeeRate(payment.feeRate)}</dd>
-                        <dt className={styles.feeDetail}>手续费</dt><dd className={styles.feeDetail}>{formatCny(payment.feeAmount)}</dd>
-                        <dt>净到账余额</dt><dd>{formatCny(payment.creditAmount)}</dd>
-                    </>}
+                    <dt className={styles.feeDetail}>手续费比例</dt><dd className={styles.feeDetail}>{formatFeeRate(payment.feeRate)}</dd>
+                    <dt className={styles.feeDetail}>手续费</dt><dd className={styles.feeDetail}>{formatCny(payment.feeAmount)}</dd>
+                    <dt>净到账余额</dt><dd>{formatCny(payment.creditAmount)}</dd>
                     {complete && <><dt>钱包余额</dt><dd>{walletBalance === null ? '刷新中…' : formatCny(walletBalance)}</dd></>}
                     <dt>当前状态</dt><dd>{complete ? '已支付 · 已到账' : closed ? '已关闭' : payment.status === 'WAIT' ? '已支付 · 到账处理中' : '等待付款'}</dd></dl>
                 {checkError && <Alert showIcon type="warning" message={checkError}/>}

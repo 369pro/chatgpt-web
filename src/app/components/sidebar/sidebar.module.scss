@@ -1,13 +1,15 @@
-.sidebar { background: #fff; align-self: start; padding: 24px 12px 14px; min-width: 0; border-radius: 4px; }
+.sidebar { background: rgba(255,255,255,.72); border: 1px solid #e5e5e7; align-self: start; padding: 24px 12px 14px; min-width: 0; border-radius: 12px; }
 .profile { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 4px 12px 25px; overflow-wrap: anywhere; text-align: center; }
-.avatar { width: 64px; height: 64px; display: grid; place-items: center; font-size: 26px; font-weight: 600; border-radius: 50%; color: #2864c5; background: #eaf1ff; }
+.avatar { width: 64px; height: 64px; display: grid; place-items: center; font-size: 26px; font-weight: 600; border-radius: 50%; color: #0066cc; background: #e8f2ff; }
 .profile strong { font-size: 15px; font-weight: 600; }
-.caption { font-size: 12px; color: #939ba8; }
+.caption { font-size: 12px; color: #6e6e73; }
 .nav { display: flex; flex-direction: column; gap: 6px; }
-.nav a { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 18px; color: #626b7c; text-decoration: none; font-size: 14px; border-radius: 4px; }
-.nav a:hover { background: #f5f7fa; }
-.nav a:global(.active) { background: #edf3ff; color: #2878ff; font-weight: 600; }
+.nav a { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 18px; color: #515154; text-decoration: none; font-size: 14px; border-radius: 8px; }
+.nav a:hover { background: #f5f5f7; }
+.nav a:global(.active) { background: #e8f2ff; color: #007aff; font-weight: 600; }
 .nav :global(.anticon) { font-size: 17px; }
-.footer { padding-top: 28px; margin-top: 18px; border-top: 1px solid #f0f2f5; text-align: center; }
-.footer button { color: #8b94a3; font-size: 12px; }
+.footer { padding-top: 28px; margin-top: 18px; border-top: 1px solid #e5e5e7; text-align: center; }
+.footer button { color: #6e6e73; font-size: 12px; }
 @media (max-width: 600px) { .sidebar { width: 100%; box-sizing: border-box; padding: 8px; display: flex; align-items: center; } .profile { display: none; } .nav { flex: 1; flex-direction: row; gap: 4px; justify-content: space-around; } .nav a { padding: 8px; min-height: 28px; gap: 6px; font-size: 12px; flex-direction: column; } .footer { border: 0; margin: 0; padding: 0; } .footer button { padding: 4px; } .footer button > span:last-child:not(:first-child) { display: none; } }
+
+.nav a:focus-visible { outline: 3px solid rgba(0,122,255,.4); outline-offset: 2px; }

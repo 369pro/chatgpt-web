@@ -1,20 +1,21 @@
 "use client";
 
 import {ConfigProvider} from "antd";
-import {AppstoreFilled, MessageOutlined, GiftOutlined} from "@ant-design/icons";
+import {AppstoreFilled, MessageOutlined, GiftOutlined, RobotOutlined} from "@ant-design/icons";
 import {HashRouter as Router, Routes, Route, NavLink, Navigate, useLocation} from "react-router-dom";
 import dynamic from "next/dynamic";
 import {SideBar} from "../../components/sidebar/sidebar";
 import {DialogMessage} from "@/app/components/dialog/dialog-message";
-import {RoleDetail} from "@/app/components/role/role-detail";
 import {useAccessStore} from "@/app/store/access";
+import {AppLoading} from "@/app/components/app-loading";
 import styles from "./home.module.scss";
 
-const Chat = dynamic(async () => (await import("../chat/chat")).Chat);
-const Role = dynamic(async () => (await import("../role/role")).Role);
-const Auth = dynamic(async () => (await import("../auth/auth")).Auth);
-const Sale = dynamic(async () => (await import("../sale/sale")).Sale);
-const Market = dynamic(async () => (await import("../market/market")).Market);
+const loading = () => <AppLoading/>;
+const Chat = dynamic(async () => (await import("../chat/chat")).Chat, {loading});
+const Auth = dynamic(async () => (await import("../auth/auth")).Auth, {loading});
+const Sale = dynamic(async () => (await import("../sale/sale")).Sale, {loading});
+const Market = dynamic(async () => (await import("../market/market")).Market, {loading});
+const Assistant = dynamic(async () => (await import("../assistant/assistant")).Assistant, {loading});
 
 function Screen() {
     const {token, username} = useAccessStore();
@@ -28,6 +29,7 @@ function Screen() {
                 <nav className={styles.topnav} aria-label="主导航">
                     <NavLink to="/market"><GiftOutlined/>福利中心</NavLink>
                     <NavLink to="/chat"><MessageOutlined/>智能对话</NavLink>
+                    <NavLink to="/assistant"><RobotOutlined/>个人助理</NavLink>
                 </nav>
                 <span className={styles.account}><span className={styles.avatar}>{username.slice(0, 1).toUpperCase()}</span>{username}</span>
             </div>
@@ -37,9 +39,10 @@ function Screen() {
             <main className={styles.content}>
                 <Routes>
                     <Route path="/chat" element={<Chat/>}><Route path=":id" element={<DialogMessage/>}/></Route>
-                    <Route path="/role" element={<Role/>}><Route path=":id" element={<RoleDetail/>}/></Route>
                     <Route path="/market" element={<Market/>}/>
                     <Route path="/sale" element={<Sale/>}/>
+                    <Route path="/assistant" element={<Assistant/>}/>
+                    <Route path="/assistant/:id" element={<Assistant/>}/>
                     <Route path="*" element={<Navigate to="/market" replace/>}/>
                 </Routes>
             </main>

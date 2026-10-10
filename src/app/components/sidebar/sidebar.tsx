@@ -1,5 +1,5 @@
 import {NavLink, useNavigate} from "react-router-dom";
-import {GiftOutlined, MessageOutlined, TeamOutlined, ShoppingOutlined, LogoutOutlined} from "@ant-design/icons";
+import {GiftOutlined, MessageOutlined, RobotOutlined, ShoppingOutlined, LogoutOutlined} from "@ant-design/icons";
 import {Button, message} from "antd";
 import {useAccessStore} from "@/app/store/access";
 import {logout} from "@/apis";
@@ -31,8 +31,8 @@ export function SideBar() {
         <nav className={styles.nav} aria-label="个人中心导航">
             <NavLink to="/market"><GiftOutlined/>幸运抽奖</NavLink>
             <NavLink to="/chat"><MessageOutlined/>我的对话</NavLink>
-            <NavLink to="/role"><TeamOutlined/>角色助手</NavLink>
-            <NavLink to="/sale"><ShoppingOutlined/>额度商城</NavLink>
+            <NavLink to="/assistant"><RobotOutlined/>个人助理</NavLink>
+            <NavLink to="/sale"><ShoppingOutlined/>余额充值</NavLink>
         </nav>
         <div className={styles.footer}><Button type="text" aria-label="退出登录" title="退出登录" icon={<LogoutOutlined/>} loading={pending} onClick={signOut}>退出登录</Button></div>
     </aside>;

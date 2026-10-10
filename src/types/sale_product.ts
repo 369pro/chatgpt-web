@@ -6,7 +6,6 @@ export interface SaleProduct {
     price: string | number,
     feeRate?: string | number | null,
     feeAmount?: string | number | null,
-    quota?: number | null,
 }
 
 export enum SaleProductEnum {

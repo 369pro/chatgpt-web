@@ -1,7 +1,6 @@
 export enum Path {
     Home = "/",
     Chat = "/chat",
-    Role = "/role",
     Sale = "/sale",
     Market = "/market",
 }

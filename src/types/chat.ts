@@ -21,13 +21,35 @@ export interface Message {
     direction?: MessageDirection;
     role: MessageRole;
     id: string;
+    runId?: string;
     streaming?: boolean;
     status?: MessageStatus;
     error?: string;
+    quotes?: ChatQuote[];
+    attachmentIds?: string[];
+    attachments?: ChatAttachment[];
+    sources?: ChatSource[];
+}
+
+export interface ChatQuote { message_id: string; text: string; }
+export interface ChatSource { id: number; url: string; title: string; snippet?: string; }
+export interface ChatAttachment {
+    id: string;
+    filename: string;
+    size_bytes: number;
+    status: "ready" | "failed";
+    error?: string | null;
+    created_at: string;
+    text_length: number;
+    knowledge_path?: string | null;
 }
 
 export interface SessionConfig {
     gptVersion: string;
+    mode?: "chat" | "research";
+    budgetLimit?: number;
+    thinking?: boolean;
+    webSearch?: boolean;
 }
 
 export enum MessageRole {

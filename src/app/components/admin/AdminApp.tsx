@@ -1,8 +1,10 @@
 import { Home } from "@/app/pages/home/home";
+import {PaymentReturnResume} from "@/app/payment/return/resume";
 
-export default async function App() {
+export default function App() {
     return (
         <>
+            <PaymentReturnResume/>
             <Home/>
         </>
     )
